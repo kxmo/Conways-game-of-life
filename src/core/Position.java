@@ -1,5 +1,10 @@
 package core;
 
+import java.util.Arrays;
+import java.util.Set;
+
+import util.SetUtil;
+
 /**
  * A valid position in the universe.
  * Values may be negative.
@@ -23,6 +28,24 @@ public class Position
 	public int getY()
 	{
 		return y;
+	}
+	
+	public boolean isNeighbour(Position p)
+	{
+		return getNeighbours().contains(p);
+	}
+	
+	public Set<Position> getNeighbours()
+	{
+		return SetUtil.newSet(Arrays.asList(
+				new Position(x - 1, y + 1),
+				new Position(x, y + 1),
+				new Position(x + 1, y + 1),
+				new Position(x - 1, y),
+				new Position(x + 1, y),
+				new Position(x - 1, y - 1),
+				new Position(x, y - 1),
+				new Position(x + 1, y - 1)));
 	}
 	
 	@Override

@@ -1,6 +1,7 @@
 package board;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import core.Cell;
 import core.Position;
@@ -25,7 +26,10 @@ public class Board
 		this.cells = SetUtil.newSet();
 	}
 	
-	private Board(Set<Position> cells)
+	/**
+	 * @param cells The position of alive cells.
+	 */
+	public Board(Set<Position> cells)
 	{
 		this.cells = SetUtil.copy(cells);
 	}
@@ -88,5 +92,22 @@ public class Board
 		{
 			return Cell.Dead;
 		}
+	}
+	
+	public Set<Position> aliveCells()
+	{
+		return SetUtil.copy(cells);
+	}
+
+	public int aliveNeighbourCount(Position p)
+	{
+		return aliveNeighbours(p).size();
+	}
+	
+	public Set<Position> aliveNeighbours(Position p)
+	{
+		return cells.stream()
+			.filter(p::isNeighbour)
+			.collect(Collectors.toSet());
 	}
 }
