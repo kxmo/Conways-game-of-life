@@ -9,18 +9,13 @@ import datastructures.Pair;
 
 public class Rules
 {
-	public static Board applyRulesToBoard(Board board)
+	public static Board applyRules(Board board)
 	{
 		ImmutableSet<Pair<Position, Cell>> positionToCell = cellsToCheck(board).map(p -> new Pair<Position, Cell>(p, nextCellState(board, p)));
 		ImmutableSet<Pair<Position, Cell>> positionToAliveCell = positionToCell.filter(pair -> pair.right().equals(Cell.Alive));
 		ImmutableSet<Position> aliveCells = positionToAliveCell.map(Pair::left);
 		
 		return new Board(aliveCells);
-	}
-
-	public static Cell nextCellState(Board board, Position pos)
-	{
-		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
 
 	public static Cell nextCellStateRule(Cell c, NeighbourCount count)
@@ -53,5 +48,10 @@ public class Rules
 		ImmutableSet<Position> liveCellNeighbours = liveCells.map(board::aliveNeighbours).reduce((a, b) -> a.union(b)).get();
 
 		return liveCells.union(liveCellNeighbours);
+	}
+	
+	private static Cell nextCellState(Board board, Position pos)
+	{
+		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
 }

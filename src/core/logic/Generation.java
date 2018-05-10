@@ -30,6 +30,6 @@ public class Generation
 	
 	public static Board runGeneration(Board b)
 	{
-		return Rules.applyRulesToBoard(b);
+		return Rules.applyRules(b);
 	}
 }
