@@ -4,15 +4,25 @@ import core.structures.Board;
 import core.structures.Cell;
 import core.structures.Position;
 import datastructures.ImmutableSet;
+import datastructures.Pair;
 
 public class Rules
 {
-	public Cell nextCellState(Board board, Position pos)
+	public static Board applyRulesToBoard(Board board)
+	{
+		ImmutableSet<Pair<Position, Cell>> positionToCell = cellsToCheck(board).map(p -> new Pair<Position, Cell>(p, nextCellState(board, p)));
+		ImmutableSet<Pair<Position, Cell>> positionToAliveCell = positionToCell.filter(pair -> pair.right().equals(Cell.Alive));
+		ImmutableSet<Position> aliveCells = positionToAliveCell.map(Pair::left);
+		
+		return new Board(aliveCells);
+	}
+
+	public static Cell nextCellState(Board board, Position pos)
 	{
 		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
-	
-	private Cell nextCellStateRule(Cell c, int neighbourCount)
+
+	private static Cell nextCellStateRule(Cell c, int neighbourCount)
 	{
 		if (c.equals(Cell.Alive))
 		{
@@ -25,10 +35,10 @@ public class Rules
 		{
 			return Cell.Alive;
 		}
-		
+
 		return Cell.Dead;
 	}
-	
+
 	/**
 	 * The cells to check are all cells on the existing board
 	 * and all of the neighbours of the alive cells on the board
@@ -36,11 +46,11 @@ public class Rules
 	 * @param board
 	 * @return
 	 */
-	private Board cellsToCheck(Board board)
+	private static ImmutableSet<Position> cellsToCheck(Board board)
 	{
 		ImmutableSet<Position> liveCells = board.aliveCells();
-		ImmutableSet<Position> liveCellNeighbours = liveCells.stream().map(board::aliveNeighbours).reduce((a, b) -> a.union(b)).get();
-		
-		return new Board(liveCells.union(liveCellNeighbours));
+		ImmutableSet<Position> liveCellNeighbours = liveCells.map(board::aliveNeighbours).reduce((a, b) -> a.union(b)).get();
+
+		return liveCells.union(liveCellNeighbours);
 	}
 }

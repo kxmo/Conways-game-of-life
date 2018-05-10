@@ -2,8 +2,11 @@ package datastructures;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -100,10 +103,20 @@ public class ImmutableSet<T>
 	{
 		return new ImmutableSet<T>(stream.collect(Collectors.toSet()));
 	}
+
+	public <R> ImmutableSet<R> map(Function<? super T,? extends R> mapper)
+	{
+		return ImmutableSet.fromStream(this.stream().map(mapper));
+	}
 	
 	public ImmutableSet<T> filter(Predicate<? super T> predicate)
 	{
 		return ImmutableSet.fromStream(this.stream().filter(predicate));
+	}
+	
+	public Optional<T> reduce(BinaryOperator<T> accumulator)
+	{
+		return this.stream().reduce(accumulator);
 	}
 
 	/**
