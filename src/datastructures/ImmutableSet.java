@@ -69,6 +69,19 @@ public class ImmutableSet<T>
 		return safeAction(s -> s.addAll(set.set));
 	}
 	
+	@Override
+	public boolean equals(Object o)
+	{
+		boolean isEqual = false;
+		
+		if (o instanceof ImmutableSet<?>)
+		{
+			ImmutableSet<?> other = (ImmutableSet<?>) o;
+			isEqual = this.set.equals(other.set);
+		}
+		
+		return isEqual;
+	}
 	
 	/*
 	 * Basic actions provided by the stream interface.
