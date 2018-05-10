@@ -45,7 +45,7 @@ public class Rules
 	private static ImmutableSet<Position> cellsToCheck(Board board)
 	{
 		ImmutableSet<Position> liveCells = board.aliveCells();
-		ImmutableSet<Position> liveCellNeighbours = liveCells.map(board::aliveNeighbours).reduce((a, b) -> a.union(b)).get();
+		ImmutableSet<Position> liveCellNeighbours = ImmutableSet.fromStream(liveCells.stream().flatMap(p -> board.aliveNeighbours(p).stream()));
 
 		return liveCells.union(liveCellNeighbours);
 	}

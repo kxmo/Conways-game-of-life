@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import core.logic.Rules;
+import core.structures.Board;
 import core.structures.Cell;
 import core.structures.NeighbourCount;
 
@@ -17,6 +18,8 @@ public class RuleTests
 	 * 'when' and 'then' are used as a DSL for testing.
 	 * 'when' is specific to the function under test and is overloaded.
 	 */
+
+	private final Board emptyBoard = new Board();
 	
 	@Test
 	public void cellStateRule_alive_lesser2neighbours_dead()
@@ -68,6 +71,11 @@ public class RuleTests
 	
 	
 	
+	@Test
+	public void applyRules_emptyBoard_is_empty()
+	{
+		next (emptyBoard, is(emptyBoard));
+	}
 	
 	
 	
@@ -75,7 +83,11 @@ public class RuleTests
 	
 	
 	
-	
+	private void next(Board input, Board output)
+	{
+		assertEquals(output, Rules.applyRules(input));
+	}
+
 	/**
 	 * Test for nextCellStateRule.
 	 * @param input The starting cell state.
@@ -87,17 +99,22 @@ public class RuleTests
 		assertEquals(output, Rules.nextCellStateRule(input, neighbours));
 	}
 
-	/**
+	
+	/*
 	 * id but improves readability.
 	 * when (Cell.Alive, NeighbourCount.N2, then(Cell.Alive))
 	 * vs
 	 * when (Cell.Alive, NeighbourCount.N2, Cell.Alive)
 	 * It would be easy to mix up the start/end state with the latter
 	 * but the former reads left to right.
-	 * @param e
-	 * @return
 	 */
+	
 	private <T> T then(T e)
+	{
+		return e;
+	}
+	
+	private <T> T is(T e)
 	{
 		return e;
 	}
