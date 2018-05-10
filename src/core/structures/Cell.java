@@ -1,4 +1,4 @@
-package core;
+package core.structures;
 
 public enum Cell
 {

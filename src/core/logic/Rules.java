@@ -1,6 +1,8 @@
-package core;
+package core.logic;
 
-import board.Board;
+import core.structures.Board;
+import core.structures.Cell;
+import core.structures.Position;
 import datastructures.ImmutableSet;
 
 public class Rules
@@ -10,7 +12,7 @@ public class Rules
 		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
 	
-	public Cell nextCellStateRule(Cell c, int neighbourCount)
+	private Cell nextCellStateRule(Cell c, int neighbourCount)
 	{
 		if (c.equals(Cell.Alive))
 		{

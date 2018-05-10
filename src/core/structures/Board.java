@@ -1,7 +1,5 @@
-package board;
+package core.structures;
 
-import core.Cell;
-import core.Position;
 import datastructures.ImmutableSet;
 
 /**
