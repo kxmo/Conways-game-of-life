@@ -2,6 +2,7 @@ package core.logic;
 
 import core.structures.Board;
 import core.structures.Cell;
+import core.structures.NeighbourCount;
 import core.structures.Position;
 import datastructures.ImmutableSet;
 import datastructures.Pair;
@@ -22,16 +23,16 @@ public class Rules
 		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
 
-	public static Cell nextCellStateRule(Cell c, int neighbourCount)
+	public static Cell nextCellStateRule(Cell c, NeighbourCount count)
 	{
 		if (c.equals(Cell.Alive))
 		{
-			if (neighbourCount == 2 || neighbourCount == 3)
+			if (count == NeighbourCount.N2 || count == NeighbourCount.N3)
 			{
 				return Cell.Alive;
 			}
 		}
-		else if (c.equals(Cell.Dead) && neighbourCount == 3)
+		else if (c.equals(Cell.Dead) && count == NeighbourCount.N3)
 		{
 			return Cell.Alive;
 		}

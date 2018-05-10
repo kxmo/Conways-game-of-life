@@ -1,5 +1,7 @@
 package core.structures;
 
+import java.util.Optional;
+
 import datastructures.ImmutableSet;
 
 /**
@@ -94,9 +96,19 @@ public class Board
 		return cells;
 	}
 
-	public int aliveNeighbourCount(Position p)
+	public NeighbourCount aliveNeighbourCount(Position p)
 	{
-		return aliveNeighbours(p).size();
+		int aliveNeighbours = aliveNeighbours(p).size();
+		Optional<NeighbourCount> neighbourCount = NeighbourCount.neighbourCountFromInt(aliveNeighbours);
+		
+		if (neighbourCount.isPresent())
+		{
+			return neighbourCount.get();
+		}
+		else // This should never happen if the board is implemented correctly.
+		{
+			throw new IllegalStateException(String.format("The board is in an invalid state. Requested aliveNeighbourCount of '%s' on board '%s'", p, cells));
+		}
 	}
 	
 	public ImmutableSet<Position> aliveNeighbours(Position p)
