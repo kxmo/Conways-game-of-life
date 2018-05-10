@@ -115,4 +115,18 @@ public class Board
 	{
 		return cells.filter(p::isNeighbour);
 	}
+	
+	@Override
+	public boolean equals(Object o)
+	{
+		boolean isEqual = false;
+		
+		if (o instanceof Board)
+		{
+			Board board = (Board) o;
+			isEqual = this.cells.equals(board.cells);
+		}
+		
+		return isEqual;
+	}
 }
