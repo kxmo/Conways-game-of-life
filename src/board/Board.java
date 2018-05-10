@@ -1,11 +1,8 @@
 package board;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import core.Cell;
 import core.Position;
-import util.SetUtil;
+import datastructures.ImmutableSet;
 
 /**
  * The board keeps track of cells in the universe.
@@ -19,19 +16,19 @@ import util.SetUtil;
 public class Board
 {
 	// The set of alive cells. Equivalent to a sparse matrix.
-	private final Set<Position> cells;
+	private final ImmutableSet<Position> cells;
 	
 	public Board()
 	{
-		this.cells = SetUtil.newSet();
+		this.cells = new ImmutableSet<Position>();
 	}
 	
 	/**
 	 * @param cells The position of alive cells.
 	 */
-	public Board(Set<Position> cells)
+	public Board(ImmutableSet<Position> cells)
 	{
-		this.cells = SetUtil.copy(cells);
+		this.cells = new ImmutableSet<Position>(cells);
 	}
 	
 	/**
@@ -53,7 +50,7 @@ public class Board
 		{
 			if (c.equals(Cell.Dead))
 			{
-				return new Board(SetUtil.remove(cells, p));
+				return new Board(cells.remove(p));
 			}
 			else
 			{
@@ -62,7 +59,7 @@ public class Board
 		}
 		else if (c.equals(Cell.Alive))
 		{
-			return new Board(SetUtil.add(cells, p));
+			return new Board(cells.add(p));
 		}
 		else
 		{
@@ -94,9 +91,9 @@ public class Board
 		}
 	}
 	
-	public Set<Position> aliveCells()
+	public ImmutableSet<Position> aliveCells()
 	{
-		return SetUtil.copy(cells);
+		return cells;
 	}
 
 	public int aliveNeighbourCount(Position p)
@@ -104,10 +101,8 @@ public class Board
 		return aliveNeighbours(p).size();
 	}
 	
-	public Set<Position> aliveNeighbours(Position p)
+	public ImmutableSet<Position> aliveNeighbours(Position p)
 	{
-		return cells.stream()
-			.filter(p::isNeighbour)
-			.collect(Collectors.toSet());
+		return cells.filter(p::isNeighbour);
 	}
 }

@@ -1,9 +1,8 @@
 package core;
 
 import java.util.Arrays;
-import java.util.Set;
 
-import util.SetUtil;
+import datastructures.ImmutableSet;
 
 /**
  * A valid position in the universe.
@@ -35,9 +34,9 @@ public class Position
 		return getNeighbours().contains(p);
 	}
 	
-	public Set<Position> getNeighbours()
+	public ImmutableSet<Position> getNeighbours()
 	{
-		return SetUtil.newSet(Arrays.asList(
+		return new ImmutableSet<Position>(Arrays.asList(
 				new Position(x - 1, y + 1),
 				new Position(x, y + 1),
 				new Position(x + 1, y + 1),

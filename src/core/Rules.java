@@ -1,9 +1,7 @@
 package core;
 
-import java.util.Set;
-
 import board.Board;
-import util.SetUtil;
+import datastructures.ImmutableSet;
 
 public class Rules
 {
@@ -38,9 +36,9 @@ public class Rules
 	 */
 	private Board cellsToCheck(Board board)
 	{
-		Set<Position> liveCells = board.aliveCells();
-		Set<Position> liveCellNeighbours = liveCells.stream().map(board::aliveNeighbours).reduce(SetUtil::union).get();
+		ImmutableSet<Position> liveCells = board.aliveCells();
+		ImmutableSet<Position> liveCellNeighbours = liveCells.stream().map(board::aliveNeighbours).reduce((a, b) -> a.union(b)).get();
 		
-		return new Board(SetUtil.union(liveCells, liveCellNeighbours));
+		return new Board(liveCells.union(liveCellNeighbours));
 	}
 }
