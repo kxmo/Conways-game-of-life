@@ -22,7 +22,7 @@ public class Rules
 		return nextCellStateRule(board.cellAt(pos), board.aliveNeighbourCount(pos));
 	}
 
-	private static Cell nextCellStateRule(Cell c, int neighbourCount)
+	public static Cell nextCellStateRule(Cell c, int neighbourCount)
 	{
 		if (c.equals(Cell.Alive))
 		{
