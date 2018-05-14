@@ -1,9 +1,9 @@
 package datastructures;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -11,26 +11,38 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
+/**
+ * Create an immutable set.
+ * 
+ * Note that the set itself is immutable, and not necessarily
+ * the elements within the set.
+ * That is, when you add a mutable element to the set
+ * the set does not (and cannot) prevent that element 
+ * from being mutated.
+ * Importantly, the set also does not copy elements between
+ * instances of the set because the elements are assumed to be
+ * immutable. 
+ * @param <T> The type of the elements within the set
+ */
 public class ImmutableSet<T> implements Cloneable
 {
-	private final Set<T> set;
+	private final Set<T> elements;
 	
 	public ImmutableSet()
 	{
-		this.set = new HashSet<>();
+		this.elements = new CopyOnWriteArraySet<>();
 	}
 	
 	public ImmutableSet(Collection<T> items)
 	{
-		Set<T> copy = new HashSet<>(items);
-		this.set = copy;
+		Set<T> copy = new CopyOnWriteArraySet<>(items);
+		this.elements = copy;
 	}
 
 	@Override
 	public ImmutableSet<T> clone()
 	{
-		return new ImmutableSet<T>(set);
+		return new ImmutableSet<T>(elements);
 	}
 	
 	
@@ -40,12 +52,12 @@ public class ImmutableSet<T> implements Cloneable
 	
 	public int size()
 	{
-		return this.set.size();
+		return this.elements.size();
 	}
 	
 	public boolean contains(T item)
 	{
-		return this.set.contains(item);
+		return this.elements.contains(item);
 	}
 	
 	public ImmutableSet<T> add(T item)
@@ -60,7 +72,7 @@ public class ImmutableSet<T> implements Cloneable
 	
 	public ImmutableSet<T> union(ImmutableSet<T> set)
 	{
-		return safeAction(s -> s.addAll(set.set));
+		return safeAction(s -> s.addAll(set.elements));
 	}
 	
 	@Override
@@ -71,7 +83,7 @@ public class ImmutableSet<T> implements Cloneable
 		if (o instanceof ImmutableSet<?>)
 		{
 			ImmutableSet<?> other = (ImmutableSet<?>) o;
-			isEqual = this.set.equals(other.set);
+			isEqual = this.elements.containsAll(other.elements) && other.elements.containsAll(this.elements);
 		}
 		
 		return isEqual;
@@ -80,13 +92,13 @@ public class ImmutableSet<T> implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		return set.hashCode();
+		return elements.hashCode();
 	}
 	
 	@Override
 	public String toString()
 	{
-		return this.set.toString();
+		return this.elements.toString();
 	}
 	
 	/*
@@ -103,7 +115,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public Stream<T> stream()
 	{
-		return this.clone().set.stream();
+		return this.clone().elements.stream();
 	}
 	
 	/**
@@ -146,7 +158,7 @@ public class ImmutableSet<T> implements Cloneable
 	private ImmutableSet<T> safeAction(Consumer<Set<T>> action)
 	{
 		ImmutableSet<T> copy = this.clone();
-		action.accept(copy.set);
+		action.accept(copy.elements);
 		return copy;
 	}
 }
