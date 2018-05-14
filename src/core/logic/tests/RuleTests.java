@@ -99,6 +99,55 @@ public class RuleTests
 		next (corner, is(square));
 	}
 	
+	/**
+	 * Test that the rules, when given a glider, behave as expected.
+	 * The glider is a basic moving unit whose states are known. We
+	 * test that each of these states are present, and then that the
+	 * final state is in the correct position relative to the starting
+	 * position.
+	 * This gives a greater confidence that the rules work correctly
+	 * because they exhibit the expected emergent behaviour.
+	 */
+	@Test
+	public void applyRules_glider_glides()
+	{
+		Board glider1 = new Board().addCell(Cell.Alive, new Position(4, 4))
+		                          .addCell(Cell.Alive, new Position(5, 3))
+		                          .addCell(Cell.Alive, new Position(6, 3))
+		                          .addCell(Cell.Alive, new Position(6, 4))
+		                          .addCell(Cell.Alive, new Position(6, 5));
+	
+		Board glider2 = new Board().addCell(Cell.Alive, new Position(5, 5))
+                .addCell(Cell.Alive, new Position(5, 3))
+                .addCell(Cell.Alive, new Position(6, 3))
+                .addCell(Cell.Alive, new Position(6, 4))
+                .addCell(Cell.Alive, new Position(7, 4));
+		
+		Board glider3 = new Board().addCell(Cell.Alive, new Position(5, 3))
+                .addCell(Cell.Alive, new Position(6, 3))
+                .addCell(Cell.Alive, new Position(7, 3))
+                .addCell(Cell.Alive, new Position(7, 4))
+                .addCell(Cell.Alive, new Position(6, 5));
+		
+		Board glider4 = new Board().addCell(Cell.Alive, new Position(5, 4))
+                .addCell(Cell.Alive, new Position(6, 2))
+                .addCell(Cell.Alive, new Position(6, 3))
+                .addCell(Cell.Alive, new Position(7, 3))
+                .addCell(Cell.Alive, new Position(7, 4));
+		
+		Board glider5 = new Board().addCell(Cell.Alive, new Position(5, 3))
+                .addCell(Cell.Alive, new Position(6, 2))
+                .addCell(Cell.Alive, new Position(7, 2))
+                .addCell(Cell.Alive, new Position(7, 3))
+                .addCell(Cell.Alive, new Position(7, 4));
+		
+		next(glider1, is(glider2));
+		next(glider2, is(glider3));
+		next(glider3, is(glider4));
+		next(glider4, is(glider5));
+		
+		assertEquals(glider1.aliveCells().map(p -> new Position(p.getX() + 1, p.getY() - 1)), glider5.aliveCells());
+	}
 	
 	private void next(Board input, Board output)
 	{
