@@ -11,7 +11,7 @@ public class Rules
 {
 	public static Board applyRules(Board board)
 	{
-		ImmutableSet<Pair<Position, Cell>> positionToCell = cellsToCheck(board).map(p -> new Pair<Position, Cell>(p, nextCellState(board, p)));
+		ImmutableSet<Pair<Position, Cell>> positionToCell = cellsToCheck(board.aliveCells()).map(p -> new Pair<Position, Cell>(p, nextCellState(board, p)));
 		ImmutableSet<Pair<Position, Cell>> positionToAliveCell = positionToCell.filter(pair -> pair.right().equals(Cell.Alive));
 		ImmutableSet<Position> aliveCells = positionToAliveCell.map(Pair::left);
 		
@@ -42,10 +42,9 @@ public class Rules
 	 * @param board
 	 * @return
 	 */
-	private static ImmutableSet<Position> cellsToCheck(Board board)
+	private static ImmutableSet<Position> cellsToCheck(ImmutableSet<Position> liveCells)
 	{
-		ImmutableSet<Position> liveCells = board.aliveCells();
-		ImmutableSet<Position> liveCellNeighbours = ImmutableSet.fromStream(liveCells.stream().flatMap(p -> board.aliveNeighbours(p).stream()));
+		ImmutableSet<Position> liveCellNeighbours = ImmutableSet.fromStream(liveCells.stream().flatMap(p -> p.getNeighbours().stream()));
 
 		return liveCells.union(liveCellNeighbours);
 	}

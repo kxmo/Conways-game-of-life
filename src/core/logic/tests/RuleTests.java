@@ -8,6 +8,7 @@ import core.logic.Rules;
 import core.structures.Board;
 import core.structures.Cell;
 import core.structures.NeighbourCount;
+import core.structures.Position;
 
 public class RuleTests
 {
@@ -76,11 +77,27 @@ public class RuleTests
 	{
 		next (emptyBoard, is(emptyBoard));
 	}
+
+	@Test
+	public void applyRules_square_is_unchanged()
+	{
+		Board square = new Board().addCell(Cell.Alive, new Position(2, 2))
+		                          .addCell(Cell.Alive, new Position(3, 2))
+		                          .addCell(Cell.Alive, new Position(3, 1))
+		                          .addCell(Cell.Alive, new Position(2, 1));
+
+		next (square, is(square));
+	}
 	
-	
-	
-	
-	
+	@Test
+	public void applyRules_squareCorner_generates_square()
+	{
+		Board corner = new Board().addCell(Cell.Alive, new Position(3, 2))
+		                          .addCell(Cell.Alive, new Position(4, 2))
+		                          .addCell(Cell.Alive, new Position(3, 1));
+		Board square = corner.addCell(Cell.Alive, new Position(4, 1));
+		next (corner, is(square));
+	}
 	
 	
 	private void next(Board input, Board output)
