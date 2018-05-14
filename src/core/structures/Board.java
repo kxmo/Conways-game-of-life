@@ -28,7 +28,7 @@ public class Board
 	 */
 	public Board(ImmutableSet<Position> cells)
 	{
-		this.cells = new ImmutableSet<Position>(cells);
+		this.cells = cells.clone();
 	}
 	
 	/**

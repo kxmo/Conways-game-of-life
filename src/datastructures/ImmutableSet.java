@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class ImmutableSet<T>
+public class ImmutableSet<T> implements Cloneable
 {
 	private final Set<T> set;
 	
@@ -27,14 +27,10 @@ public class ImmutableSet<T>
 		this.set = copy;
 	}
 
-	public ImmutableSet(ImmutableSet<T> items)
+	@Override
+	public ImmutableSet<T> clone()
 	{
-		this(items.set);
-	}
-
-	public ImmutableSet<T> copy(ImmutableSet<T> set)
-	{
-		return new ImmutableSet<T>(set.set);
+		return new ImmutableSet<T>(set);
 	}
 	
 	
@@ -107,7 +103,7 @@ public class ImmutableSet<T>
 	 */
 	public Stream<T> stream()
 	{
-		return copy(this).set.stream();
+		return this.clone().set.stream();
 	}
 	
 	/**
@@ -149,7 +145,7 @@ public class ImmutableSet<T>
 	 */
 	private ImmutableSet<T> safeAction(Consumer<Set<T>> action)
 	{
-		ImmutableSet<T> copy = copy(this);
+		ImmutableSet<T> copy = this.clone();
 		action.accept(copy.set);
 		return copy;
 	}
