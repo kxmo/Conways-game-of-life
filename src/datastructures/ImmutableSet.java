@@ -83,6 +83,18 @@ public class ImmutableSet<T>
 		return isEqual;
 	}
 	
+	@Override
+	public int hashCode()
+	{
+		return set.hashCode();
+	}
+	
+	@Override
+	public String toString()
+	{
+		return this.set.toString();
+	}
+	
 	/*
 	 * Basic actions provided by the stream interface.
 	 * These are provided here for simplicity on the calling end.
