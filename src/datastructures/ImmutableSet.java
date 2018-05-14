@@ -1,7 +1,7 @@
 package datastructures;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
@@ -18,14 +18,12 @@ public class ImmutableSet<T>
 	
 	public ImmutableSet()
 	{
-		this.set = Collections.emptySet();
+		this.set = new HashSet<>();
 	}
 	
 	public ImmutableSet(Collection<T> items)
 	{
-		Set<T> copy = Collections.emptySet();
-		copy.addAll(items);
-		
+		Set<T> copy = new HashSet<>(items);
 		this.set = copy;
 	}
 
