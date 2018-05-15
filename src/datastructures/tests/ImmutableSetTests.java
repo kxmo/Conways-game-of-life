@@ -22,9 +22,10 @@ public class ImmutableSetTests
 	public void add_non_assignment_does_not_mutate_set()
 	{
 		ImmutableSet<Integer> initial = new ImmutableSet<>();
-		ImmutableSet<Integer> next = new ImmutableSet<>();
+		ImmutableSet<Integer> next = initial;
 		next.add(1);
 		assertEquals(initial, next);
+		assertEquals(initial, new ImmutableSet<>());
 	}
 	
 	@Test
