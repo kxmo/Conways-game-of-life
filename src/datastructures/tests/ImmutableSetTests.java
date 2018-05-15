@@ -31,13 +31,46 @@ public class ImmutableSetTests
 	public void add_does_not_mutate_set()
 	{
 		ImmutableSet<Integer> initial = new ImmutableSet<>();
-		ImmutableSet<Integer> next = new ImmutableSet<Integer>().add(2);
+		ImmutableSet<Integer> next = initial.add(2);
 		
 		assertNotEquals(initial, next);
 		assertEquals(new ImmutableSet<>(), initial);
 		assertEquals(new ImmutableSet<>().add(2), next);
 	}
 	
+	
+	/*
+	 * Remove tests 
+	 */
+	
+	@Test
+	public void remove_returns_equal_set_when_element_not_present()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(3);
+		ImmutableSet<Integer> expected = new ImmutableSet<Integer>().add(1).add(3);
+		
+		assertEquals(expected, initial.remove(2));
+	}
+	
+	@Test
+	public void remove_non_assignment_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = new ImmutableSet<Integer>().add(1);
+		next.remove(1);
+		assertEquals(initial, next);
+	}
+	
+	@Test
+	public void remove_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = initial.add(2).remove(1);
+		
+		assertNotEquals(initial, next);
+		assertEquals(new ImmutableSet<>().add(1), initial);
+		assertEquals(new ImmutableSet<>().add(2), next);
+	}
 	
 	/*
 	 * Stream tests
