@@ -72,6 +72,60 @@ public class ImmutableSetTests
 		assertEquals(new ImmutableSet<>().add(2), next);
 	}
 	
+	
+	/*
+	 * Contains tests
+	 */
+	
+	@Test
+	public void contains_non_element_false()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		assertFalse(initial.contains(2));
+	}
+	
+	@Test
+	public void contains_non_element_empty_false()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>();
+		assertFalse(initial.contains(1));
+	}
+	
+	@Test
+	public void contains_only_element_true()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		assertTrue(initial.contains(1));
+	}
+	
+	@Test
+	public void contains_first_element_true()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(2);
+		assertTrue(initial.contains(1));
+	}
+	
+	@Test
+	public void contains_last_element_true()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(2);
+		assertTrue(initial.contains(2));
+	}
+	
+	@Test
+	public void contains_middle_element_true()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(2).add(3);
+		assertTrue(initial.contains(2));
+	}
+	
+	@Test
+	public void contains_removed_element_false()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(2).remove(2).add(3);
+		assertFalse(initial.contains(2));
+	}
+	
 	/*
 	 * Stream tests
 	 */
