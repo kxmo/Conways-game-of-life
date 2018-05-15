@@ -128,6 +128,32 @@ public class ImmutableSetTests
 	}
 	
 	/*
+	 * Clone tests
+	 */
+	
+	@Test
+	public void clone_non_assignment_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<>();
+		ImmutableSet<Integer> next = initial;
+		next.clone();
+		assertEquals(initial, next);
+		assertEquals(initial, new ImmutableSet<>());
+	}
+	
+	@Test
+	public void clone_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<>();
+		ImmutableSet<Integer> next = initial.clone().add(1);
+		
+		assertNotEquals(initial, next);
+		assertEquals(initial, new ImmutableSet<>());
+		assertEquals(next, new ImmutableSet<Integer>().add(1));
+	}
+	
+	
+	/*
 	 * Stream tests
 	 */
 	
