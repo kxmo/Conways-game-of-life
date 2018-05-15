@@ -2,8 +2,10 @@ package datastructures;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -26,17 +28,66 @@ import java.util.stream.Stream;
  */
 public class ImmutableSet<T> implements Cloneable
 {
+	/*
+	 * The places where we need to make changes that have been requested are:
+	 * - contains
+	 * - equals
+	 * - hashCode
+	 * - toString
+	 * - stream
+	 * 
+	 * Others, without additional machinery:
+	 * - clone
+	 * - size
+	 * 
+	 * A note on streams:
+	 * Streams need to be done before the stream call because callers
+	 * can collect the stream into another structure without going through
+	 * us
+	 */
+	
+	/*
+	 * We only need to store the last action taken for a specific item:
+	 * 
+	 * Assuming all actions are idempotent
+	 * This means that repeated actions make no change
+	 * so a r a, r a r and their subsets are all possible combinations.
+	 * 
+	 * Where a is add, and r is remove.
+	 * 
+	 * if item present:
+	 * a = noop
+	 * a r = r -> remove
+	 * a r a = a -> noop
+	 * 
+	 * r = r -> remove
+	 * r a = a -> noop
+	 * r a r = r -> remove
+	 * 
+	 * if item not present:
+	 * a = add
+	 * a r = r -> noop
+	 * a r a = a -> add
+	 * 
+	 * r = noop
+	 * r a = a -> add
+	 * r a r = r -> noop
+	 */
+	
 	private final Set<T> elements;
+	private final Queue<T> changes;
 	
 	public ImmutableSet()
 	{
 		this.elements = new CopyOnWriteArraySet<>();
+		this.changes = new LinkedBlockingQueue<>();
 	}
 	
 	public ImmutableSet(Collection<T> items)
 	{
 		Set<T> copy = new CopyOnWriteArraySet<>(items);
 		this.elements = copy;
+		this.changes = new LinkedBlockingQueue<>();
 	}
 
 	@Override
@@ -148,6 +199,11 @@ public class ImmutableSet<T> implements Cloneable
 	public Optional<T> reduce(BinaryOperator<T> accumulator)
 	{
 		return this.stream().reduce(accumulator);
+	}
+	
+	private void compressChanges()
+	{
+		
 	}
 
 	/**
