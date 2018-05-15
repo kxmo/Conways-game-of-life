@@ -83,7 +83,7 @@ public class ImmutableSet<T> implements Cloneable
 		if (o instanceof ImmutableSet<?>)
 		{
 			ImmutableSet<?> other = (ImmutableSet<?>) o;
-			isEqual = this.elements.containsAll(other.elements) && other.elements.containsAll(this.elements);
+			isEqual = this.elements.equals(other.elements);
 		}
 		
 		return isEqual;
