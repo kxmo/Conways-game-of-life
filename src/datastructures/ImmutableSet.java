@@ -1,13 +1,13 @@
 package datastructures;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,127 +37,177 @@ public class ImmutableSet<T> implements Cloneable
 	 * - stream
 	 * 
 	 * Others, without additional machinery:
-	 * - clone
 	 * - size
+	 * 
+	 * Cloning:
+	 * The clone of this set is the carrying over of these changes and elements
+	 * to new inner structures in a new set. We don't need to apply the changes
+	 * because the user still hasn't requested anything from us.
 	 * 
 	 * A note on streams:
 	 * Streams need to be done before the stream call because callers
 	 * can collect the stream into another structure without going through
-	 * us
+	 * us so all of our changes need to be present within the stream.
 	 */
-	
-	/*
-	 * We only need to store the last action taken for a specific item:
-	 * 
-	 * Assuming all actions are idempotent
-	 * This means that repeated actions make no change
-	 * so a r a, r a r and their subsets are all possible combinations.
-	 * 
-	 * Where a is add, and r is remove.
-	 * 
-	 * if item present:
-	 * a = noop
-	 * a r = r -> remove
-	 * a r a = a -> noop
-	 * 
-	 * r = r -> remove
-	 * r a = a -> noop
-	 * r a r = r -> remove
-	 * 
-	 * if item not present:
-	 * a = add
-	 * a r = r -> noop
-	 * a r a = a -> add
-	 * 
-	 * r = noop
-	 * r a = a -> add
-	 * r a r = r -> noop
+
+	/**
+	 * An action, called lazily, that mutates the internal set `elements'.
+	 * The actions associated with each LazyAction may be called immediately,
+	 * or may never be called. They are guaranteed to be called either 0 or 1 times
+	 * for each time that they are added to the collection of changes to be made.
 	 */
-	
+	private enum LazyAction
+	{
+		Add,
+		Remove;
+
+		// It is vitally important that the following case statement is kept in sync with
+		// the values in this enum.
+
+		// Enums are not allowed to use generics, so we cannot add elements.f(T item) to 
+		// the constructor of each enum (which would be the preferred solution). Instead we 
+		// maintain a case statement.
+
+		public static <T> void executeAction(Set<T> elements, T item, LazyAction value)
+		{
+			switch (value)
+			{
+				case Add:
+					elements.add(item);
+					break;
+				case Remove:
+					elements.remove(item);
+					break;
+			}
+		}
+	}
+
 	private final Set<T> elements;
-	private final Queue<T> changes;
-	
+	private final Map<T, LazyAction> changes;
+
 	public ImmutableSet()
 	{
-		this.elements = new CopyOnWriteArraySet<>();
-		this.changes = new LinkedBlockingQueue<>();
+		this.elements = newSet();
+		this.changes = newActionMap();
 	}
-	
+
 	public ImmutableSet(Collection<T> items)
 	{
-		Set<T> copy = new CopyOnWriteArraySet<>(items);
-		this.elements = copy;
-		this.changes = new LinkedBlockingQueue<>();
+		this.elements = newSet(items);
+		this.changes = newActionMap();
+	}
+
+	private ImmutableSet(Collection<T> items, Map<T, LazyAction> changes)
+	{
+		this.elements = newSet(items);
+		this.changes = newActionMap(changes);
 	}
 
 	@Override
 	public ImmutableSet<T> clone()
 	{
-		return new ImmutableSet<T>(elements);
+		return new ImmutableSet<T>(elements, changes);
 	}
-	
-	
+
+
+	private Set<T> newSet()
+	{
+		return new CopyOnWriteArraySet<>();
+	}
+
+	private Set<T> newSet(Collection<T> items)
+	{
+		return new CopyOnWriteArraySet<>(items);
+	}
+
+	private Map<T, LazyAction> newActionMap()
+	{
+		return new HashMap<>();
+	}
+
+	private Map<T, LazyAction> newActionMap(Map<T, LazyAction> items)
+	{
+		return new HashMap<>(items);
+	}
+
 	/*
 	 * Basic set actions
 	 */
-	
+
 	public int size()
 	{
-		return this.elements.size();
+		return applyChangesToElements().size();
 	}
-	
+
 	public boolean contains(T item)
 	{
-		return this.elements.contains(item);
+		return applyChangesToElements().contains(item);
 	}
-	
+
 	public ImmutableSet<T> add(T item)
 	{
-		return safeAction(s -> s.add(item));
+		return storeLazyAction(item, LazyAction.Add);
 	}
-	
+
 	public ImmutableSet<T> remove(T item)
 	{
-		return safeAction(s -> s.remove(item));
+		return storeLazyAction(item, LazyAction.Remove);
 	}
-	
+
 	public ImmutableSet<T> union(ImmutableSet<T> set)
 	{
-		return safeAction(s -> s.addAll(set.elements));
+		/* Following is a strict union implementation,
+		 * the lazy version will look something like:
+		ImmutableSet<T> newSet = this;
+
+		for (T item : set)
+		{
+			newSet = newSet.add(item);
+		}
+
+		return newSet;
+		 */
+		ImmutableSet<T> copy = this.clone();
+		copy.elements.addAll(set.applyChangesToElements());
+		return copy;
 	}
+
+	/*
+	 * Object contract and niceties
+	 */
 	
 	@Override
 	public boolean equals(Object o)
 	{
 		boolean isEqual = false;
-		
+
 		if (o instanceof ImmutableSet<?>)
 		{
 			ImmutableSet<?> other = (ImmutableSet<?>) o;
-			isEqual = this.elements.equals(other.elements);
+			isEqual = this.applyChangesToElements().equals(other.applyChangesToElements());
 		}
-		
+
 		return isEqual;
 	}
-	
+
 	@Override
 	public int hashCode()
 	{
-		return elements.hashCode();
+		return this.applyChangesToElements().hashCode();
 	}
-	
+
 	@Override
 	public String toString()
 	{
-		return this.elements.toString();
+		return this.applyChangesToElements().toString();
 	}
-	
+
 	/*
 	 * Basic actions provided by the stream interface.
 	 * These are provided here for simplicity on the calling end.
 	 * The stream interface can still be used using fromStream.
 	 */
-	
+
 	/**
 	 * Get a stream from the ImmutableSet.
 	 * 
@@ -166,9 +216,9 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public Stream<T> stream()
 	{
-		return this.clone().elements.stream();
+		return this.clone().applyChangesToElements().stream();
 	}
-	
+
 	/**
 	 * Use this method to get an ImmutableSet from a stream.
 	 * 
@@ -190,31 +240,95 @@ public class ImmutableSet<T> implements Cloneable
 	{
 		return ImmutableSet.fromStream(this.stream().map(mapper));
 	}
-	
+
 	public ImmutableSet<T> filter(Predicate<? super T> predicate)
 	{
 		return ImmutableSet.fromStream(this.stream().filter(predicate));
 	}
-	
+
 	public Optional<T> reduce(BinaryOperator<T> accumulator)
 	{
 		return this.stream().reduce(accumulator);
 	}
-	
-	private void compressChanges()
+
+	/**
+	 * The standard mechanism for storing actions that are to
+	 * be executed lazily.
+	 * 
+	 * T item needs to be provided because the LazyAction will 
+	 * be called with elements and the item. See LazyAction for
+	 * more details.
+	 * 
+	 * The effect of the LazyAction needs to be idempotent
+	 * This means that repeated actions make no change.
+	 * @param item
+	 * @param nextAction
+	 * @return
+	 */
+	private ImmutableSet<T> storeLazyAction(T item, LazyAction nextAction)
 	{
+		/*
+		 * We only need to store the last action taken for a specific item:
+		 * Given actions are idempotent
+		 * a r a, r a r and their subsets are all possible combinations.
+		 * 
+		 * Where a is add, and r is remove.
+		 * 
+		 * if item present:
+		 * a = noop
+		 * a r = r -> remove
+		 * a r a = a -> noop
+		 * 
+		 * r = r -> remove
+		 * r a = a -> noop
+		 * r a r = r -> remove
+		 * 
+		 * if item not present:
+		 * a = add
+		 * a r = r -> noop
+		 * a r a = a -> add
+		 * 
+		 * r = noop
+		 * r a = a -> add
+		 * r a r = r -> noop
+		 */
 		
+		ImmutableSet<T> other = this.clone();
+
+		if (other.changes.containsKey(item) || other.changes.containsKey(item))
+		{
+			if (other.changes.get(item).equals(nextAction))
+			{
+				return other;
+			}
+			else
+			{
+				other.changes.put(item, nextAction);
+			}
+		}
+		else
+		{
+			other.changes.put(item, nextAction);
+		}
+
+		return other;
 	}
 
 	/**
-	 * Execute an action on the copy's internal set.
-	 * @param action The action to execute. Must mutate the given set's state to have an effect.
-	 * @return A copy of `this' with the contents modified according to action.
+	 * Applies the necessary actions to the current set
+	 * Both changes and elements are mutated, but this is acceptable
+	 * because it is not visible to the user.
+	 * @return
 	 */
-	private ImmutableSet<T> safeAction(Consumer<Set<T>> action)
+	private Set<T> applyChangesToElements()
 	{
-		ImmutableSet<T> copy = this.clone();
-		action.accept(copy.elements);
-		return copy;
+		for (Entry<T, LazyAction> entry : this.changes.entrySet())
+		{
+			LazyAction.executeAction(elements, entry.getKey(), entry.getValue());
+		}
+
+		this.changes.clear();
+
+		return elements;
 	}
 }
