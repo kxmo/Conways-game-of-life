@@ -293,11 +293,24 @@ public class ImmutableSet<T> implements Cloneable
 	private ImmutableSet<T> storeLazyAction(T item, LazyAction nextAction)
 	{
 		/*
-		 * We only need to store the last action taken for a specific item:
-		 * Given actions are idempotent
-		 * a r a, r a r and their subsets are all possible combinations.
+		 * Actions need to be idempotent to enable lazy execution.
+		 * We need to be able to remove some actions from the group of
+		 * actions without affecting the outcome. In this case the natural
+		 * implementation for add and remove is idempotent because we are
+		 * operating on a set (the same is not true, for example, on a list).
+		 * 
 		 * 
 		 * Where a is add, and r is remove.
+		 * a r a, r a r and their subsets are all possible combinations due to
+		 * idempotency.
+		 * 
+		 * The form of the proof is:
+		 * requested action = result -> end result
+		 * a = noop // On add do nothing
+		 * r a = a -> noop // On remove then add, do an add which is do nothing
+		 * 
+		 * Proof:
+		 * Assume there are only 2 cases: an item is either present or not present.
 		 * 
 		 * if item present:
 		 * a = noop
@@ -316,26 +329,16 @@ public class ImmutableSet<T> implements Cloneable
 		 * r = noop
 		 * r a = a -> add
 		 * r a r = r -> noop
+		 * 
+		 * From the truth table above:
+		 * The last action taken is the final result of any combination of actions in
+		 * every case.
+		 * Map.put(x,y) where x and y are already present is a noop which is consistent
+		 * with above so may be used in all cases.
 		 */
 		
 		ImmutableSet<T> other = this.clone();
-
-		if (other.changes.containsKey(item) || other.changes.containsKey(item))
-		{
-			if (other.changes.get(item).equals(nextAction))
-			{
-				return other;
-			}
-			else
-			{
-				other.changes.put(item, nextAction);
-			}
-		}
-		else
-		{
-			other.changes.put(item, nextAction);
-		}
-
+		other.changes.put(item, nextAction);
 		return other;
 	}
 
