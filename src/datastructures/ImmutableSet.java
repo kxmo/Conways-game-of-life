@@ -45,29 +45,37 @@ public class ImmutableSet<T> implements Cloneable
 	/*
 	 * Lazy implementation:
 	 * 
-	 * The places where we need to make changes that have been requested are:
-	 * - contains
-	 * - equals
+	 * Places where a fully lazy implementation is more difficult than it's worth:
 	 * - hashCode
 	 * - toString
-	 * - stream
-	 * 
-	 * Others, without additional machinery:
+	 * - equals
+	 * - contains
+	 * - union
 	 * - size
 	 * 
-	 * Cloning:
-	 * The clone of this set is the carrying over of these changes and elements
-	 * to new inner structures in a new set. We don't need to apply the changes
-	 * because the user still hasn't requested anything from us.
-	 * 
-	 * A note on streams:
-	 * Streams need to be done before the stream call because callers
+	 * Streams:
+	 * Streams *need* to be synced before the stream call because callers
 	 * can collect the stream into another structure without going through
 	 * us so all of our changes need to be present within the stream.
 	 */
+	
+	/*
+	 * Lazy implementation details:
+	 * 
+	 * The existing set elements are kept in `elements'.
+	 * The changes to be made are kept in a mapping from
+	 * the element to the change to be made (a LazyAction).
+	 * For more information on why this is valid see storeLazyAction().
+	 * 
+	 * Changes are, in general, not made until they need to be.
+	 * This is not true in a few places where the implementation is vastly simpler
+	 * (see the list in Lazy Implementation).
+	 */
 
 	/**
-	 * An action, called lazily, that mutates the internal set `elements'.
+	 * A lazy action is an action that we store, to possibly be executed later.
+	 * 
+	 * The affecting action must mutate the internal set `elements' idempotently.
 	 * The actions associated with each LazyAction may be called immediately,
 	 * or may never be called. They are guaranteed to be called either 0 or 1 times
 	 * for each time that they are added to the collection of changes to be made.
@@ -122,6 +130,7 @@ public class ImmutableSet<T> implements Cloneable
 	@Override
 	public ImmutableSet<T> clone()
 	{
+		// We don't need to apply the changes because the user still hasn't requested anything from us.
 		return new ImmutableSet<T>(elements, changes);
 	}
 
