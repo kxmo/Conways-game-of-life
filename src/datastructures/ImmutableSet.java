@@ -180,21 +180,42 @@ public class ImmutableSet<T> implements Cloneable
 	 * Basic set actions
 	 */
 
+	/**
+	 * @return The number of elements in the set.
+	 */
 	public int size()
 	{
 		return applyChangesToElements().size();
 	}
 
+	/**
+	 * @param item The item to test.
+	 * @return True iff item is in the set, false otherwise.
+	 */
 	public boolean contains(T item)
 	{
 		return applyChangesToElements().contains(item);
 	}
 
+	/**
+	 * Add an item to a copy of this set, then return that set.
+	 * If the item is present in the current set then the returned
+	 * set is .equal() to this one.
+	 * @param item The item to add.
+	 * @return A new immutable set with item in it.
+	 */
 	public ImmutableSet<T> add(T item)
 	{
 		return storeLazyAction(item, LazyAction.Add);
 	}
 
+	/**
+	 * Create a new set such that item is not present in the set.
+	 * If the item is not present in the current set then the returned
+	 * set is .equal() to this one.
+	 * @param item The item to remove.
+	 * @return A new immutable set without item in it.
+	 */
 	public ImmutableSet<T> remove(T item)
 	{
 		return storeLazyAction(item, LazyAction.Remove);
