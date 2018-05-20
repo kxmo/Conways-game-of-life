@@ -150,6 +150,12 @@ public class ImmutableSet<T> implements Cloneable
 	}
 
 
+	/*
+	 * Private field factories.
+	 * These should be used in place of new SomeSet<>();
+	 * to ensure a consistent internal field implementation.
+	 */
+	
 	private Set<T> newSet()
 	{
 		return new CopyOnWriteArraySet<>();
