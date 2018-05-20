@@ -41,7 +41,7 @@ public class ImmutableSet<T> implements Cloneable
 	 * about the set (toString, equals, contains etc) the correct
 	 * answer must be returned.
 	 */
-	
+
 	/*
 	 * Lazy implementation:
 	 * 
@@ -58,7 +58,7 @@ public class ImmutableSet<T> implements Cloneable
 	 * can collect the stream into another structure without going through
 	 * us so all of our changes need to be present within the stream.
 	 */
-	
+
 	/*
 	 * Lazy implementation details:
 	 * 
@@ -82,8 +82,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	private enum LazyAction
 	{
-		Add,
-		Remove;
+		Add, Remove;
 
 		// It is vitally important that the following case statement is kept in sync with
 		// the values in this enum.
@@ -149,13 +148,12 @@ public class ImmutableSet<T> implements Cloneable
 		return new ImmutableSet<T>(elements, changes);
 	}
 
-
 	/*
 	 * Private field factories.
 	 * These should be used in place of new SomeSet<>();
 	 * to ensure a consistent internal field implementation.
 	 */
-	
+
 	private Set<T> newSet()
 	{
 		return new CopyOnWriteArraySet<>();
@@ -231,13 +229,13 @@ public class ImmutableSet<T> implements Cloneable
 		/*
 		 * The current implementation is more efficient if the
 		 * parameter set has a smaller number of changes to make 
-	 	 * than the callee set.
-	 	 * 
-	 	 * A fully lazy approach would combine all of the elements
-	 	 * and combine the changes favoring add over remove.
+		 * than the callee set.
+		 * 
+		 * A fully lazy approach would combine all of the elements
+		 * and combine the changes favoring add over remove.
 		 */
 		ImmutableSet<T> newSet = this;
-		
+
 		set.applyChangesToElements();
 
 		for (T item : set.elements)
@@ -251,7 +249,7 @@ public class ImmutableSet<T> implements Cloneable
 	/*
 	 * Object contract and niceties
 	 */
-	
+
 	@Override
 	public boolean equals(Object o)
 	{
@@ -318,7 +316,7 @@ public class ImmutableSet<T> implements Cloneable
 	 * @param mapper
 	 * @return
 	 */
-	public <R> ImmutableSet<R> map(Function<? super T,? extends R> mapper)
+	public <R> ImmutableSet<R> map(Function<? super T, ? extends R> mapper)
 	{
 		return ImmutableSet.fromStream(this.stream().map(mapper));
 	}
@@ -405,7 +403,7 @@ public class ImmutableSet<T> implements Cloneable
 		 * Map.put(x,y) where x and y are already present is a noop which is consistent
 		 * with above so may be used in all cases.
 		 */
-		
+
 		ImmutableSet<T> other = this.clone();
 		other.changes.put(item, nextAction);
 		return other;
