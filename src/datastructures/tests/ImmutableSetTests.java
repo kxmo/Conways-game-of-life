@@ -207,7 +207,7 @@ public class ImmutableSetTests
 	{
 		ImmutableSet<Integer> initial = new ImmutableSet<>();
 		ImmutableSet<Integer> next = initial;
-		next.clone();
+		next.clone().add(1);
 		assertEquals(initial, next);
 		assertEquals(initial, new ImmutableSet<>());
 	}
