@@ -154,22 +154,31 @@ public class ImmutableSet<T> implements Cloneable
 		return storeLazyAction(item, LazyAction.Remove);
 	}
 
+	/**
+	 * Get the union of two sets.
+	 * @param set
+	 * @return
+	 */
 	public ImmutableSet<T> union(ImmutableSet<T> set)
 	{
-		/* Following is a strict union implementation,
-		 * the lazy version will look something like:
+		/*
+		 * The current implementation is more efficient if the
+		 * parameter set has a smaller number of changes to make 
+	 	 * than the callee set.
+	 	 * 
+	 	 * A fully lazy approach would combine all of the elements
+	 	 * and combine the changes favoring add over remove.
+		 */
 		ImmutableSet<T> newSet = this;
+		
+		set.applyChangesToElements();
 
-		for (T item : set)
+		for (T item : set.elements)
 		{
 			newSet = newSet.add(item);
 		}
 
 		return newSet;
-		 */
-		ImmutableSet<T> copy = this.clone();
-		copy.elements.addAll(set.applyChangesToElements());
-		return copy;
 	}
 
 	/*

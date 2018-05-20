@@ -127,6 +127,56 @@ public class ImmutableSetTests
 		assertFalse(initial.contains(2));
 	}
 	
+	
+	/*
+	 * Union tests
+	 */
+	
+	@Test
+	public void union_non_assignment_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(3);
+		ImmutableSet<Integer> next = new ImmutableSet<Integer>().add(2);
+		next.union(initial);
+		assertEquals(new ImmutableSet<>().add(2), next);
+	}
+	
+	@Test
+	public void union_does_not_mutate_set()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(3);
+		ImmutableSet<Integer> next = new ImmutableSet<Integer>().add(2);
+
+		next = next.union(initial);
+		
+		assertNotEquals(initial, next);
+		assertEquals(new ImmutableSet<>().add(1).add(3), initial);
+		assertEquals(new ImmutableSet<>().add(1).add(2).add(3), next);
+	}
+	
+	@Test
+	public void union_with_empty_equals_initial()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = new ImmutableSet<>();
+		
+		assertNotEquals(initial, next);
+		assertEquals(initial.union(next), initial);
+	}
+	
+	@Test
+	public void union_contains_all_elements_from_both_sets()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(3);
+		ImmutableSet<Integer> next = new ImmutableSet<Integer>().add(2);
+		
+		ImmutableSet<Integer> union = initial.union(next);
+		
+		assertEquals(initial.size() + next.size(), union.size());
+		assertEquals(new ImmutableSet<>().add(1).add(2).add(3), union);
+	}
+	
+	
 	/*
 	 * Clone tests
 	 */
