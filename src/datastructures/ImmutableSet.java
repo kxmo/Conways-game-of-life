@@ -109,18 +109,33 @@ public class ImmutableSet<T> implements Cloneable
 	private final Set<T> elements;
 	private final Map<T, LazyAction> changes;
 
+	/**
+	 * Create an empty immutable set
+	 */
 	public ImmutableSet()
 	{
 		this.elements = newSet();
 		this.changes = newActionMap();
 	}
 
+	/**
+	 * Create an immutable set with the items from
+	 * items.
+	 * @param items The items to add to the new set.
+	 */
 	public ImmutableSet(Collection<T> items)
 	{
 		this.elements = newSet(items);
 		this.changes = newActionMap();
 	}
 
+	/**
+	 * A new set with the same elements and changes as the old one.
+	 * All items are copied into new containing sets/maps so this is
+	 * not a very cheap operation.
+	 * @param items The existing set elements.
+	 * @param changes The pending set changes.
+	 */
 	private ImmutableSet(Collection<T> items, Map<T, LazyAction> changes)
 	{
 		this.elements = newSet(items);
