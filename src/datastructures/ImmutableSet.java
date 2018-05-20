@@ -23,12 +23,28 @@ import java.util.stream.Stream;
  * from being mutated.
  * Importantly, the set also does not copy elements between
  * instances of the set because the elements are assumed to be
- * immutable. 
+ * immutable.
  * @param <T> The type of the elements within the set
  */
 public class ImmutableSet<T> implements Cloneable
 {
 	/*
+	 * Lazy design:
+	 * 
+	 * The implementation of this set is lazy. This design decision
+	 * makes the immutable portion of the set more efficient than it
+	 * otherwise would be. By executing changes to the set lazily we
+	 * can avoid expensive copying of the set for every operation.
+	 * 
+	 * The semantic usage of the set is identical from the callers
+	 * point of view, however. When the caller requires information
+	 * about the set (toString, equals, contains etc) the correct
+	 * answer must be returned.
+	 */
+	
+	/*
+	 * Lazy implementation:
+	 * 
 	 * The places where we need to make changes that have been requested are:
 	 * - contains
 	 * - equals
