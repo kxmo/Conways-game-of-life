@@ -312,16 +312,34 @@ public class ImmutableSet<T> implements Cloneable
 		return new ImmutableSet<T>(stream.collect(Collectors.toSet()));
 	}
 
+	/**
+	 * A wrapper for Stream.map returning an ImmutableSet.
+	 * This function is provided for convenience on the calling end.
+	 * @param mapper
+	 * @return
+	 */
 	public <R> ImmutableSet<R> map(Function<? super T,? extends R> mapper)
 	{
 		return ImmutableSet.fromStream(this.stream().map(mapper));
 	}
 
+	/**
+	 * A wrapper for Stream.filter returning an ImmutableSet.
+	 * This function is provided for convenience on the calling end.
+	 * @param mapper
+	 * @return
+	 */
 	public ImmutableSet<T> filter(Predicate<? super T> predicate)
 	{
 		return ImmutableSet.fromStream(this.stream().filter(predicate));
 	}
 
+	/**
+	 * A wrapper for Stream.reduce returning an ImmutableSet.
+	 * This function is provided for convenience on the calling end.
+	 * @param mapper
+	 * @return
+	 */
 	public Optional<T> reduce(BinaryOperator<T> accumulator)
 	{
 		return this.stream().reduce(accumulator);
