@@ -39,6 +39,17 @@ public class ImmutableSetTests
 		assertEquals(new ImmutableSet<>().add(2), next);
 	}
 	
+	@Test
+	public void add_item_present_single_element()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = initial.add(1);
+		
+		assertEquals(1, next.size());
+		assertEquals(new ImmutableSet<Integer>().add(1), initial);
+		assertEquals(initial, next);
+	}
+	
 	
 	/*
 	 * Remove tests 
@@ -73,6 +84,16 @@ public class ImmutableSetTests
 		assertEquals(new ImmutableSet<>().add(2), next);
 	}
 	
+	@Test
+	public void remove_item_not_present_set_unchanged()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = initial.remove(2);
+		
+		assertEquals(1, next.size());
+		assertEquals(new ImmutableSet<Integer>().add(1), initial);
+		assertEquals(initial, next);
+	}
 	
 	/*
 	 * Contains tests
