@@ -2,9 +2,9 @@ package datastructures.tests;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -234,8 +234,8 @@ public class ImmutableSetTests
 		ImmutableSet<Integer> set = new ImmutableSet<Integer>().add(1)
 				.add(2)
 				.add(3);
-		List<Integer> list = set.stream().map(i -> i + 1).collect(Collectors.toList());
-		List<Integer> expectedList = new ArrayList<>(Arrays.asList(2,3,4));
+		Set<Integer> list = set.stream().map(i -> i + 1).collect(Collectors.toSet());
+		Set<Integer> expectedList = new HashSet<>(Arrays.asList(2,3,4));
 		
 		assertEquals(new ImmutableSet<>().add(1).add(2).add(3), set);
 		assertEquals(expectedList, list);
