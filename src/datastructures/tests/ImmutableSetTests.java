@@ -50,6 +50,20 @@ public class ImmutableSetTests
 		assertEquals(initial, next);
 	}
 	
+	@Test
+	public void add_mutation_branching_from_initial()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1).add(2).add(3);
+		ImmutableSet<Integer> next = initial.add(4);
+		ImmutableSet<Integer> other = initial.add(5);
+		ImmutableSet<Integer> last = initial.remove(5);
+		
+		assertEquals(new ImmutableSet<Integer>().add(1).add(2).add(3), initial);
+		assertEquals(new ImmutableSet<Integer>().add(1).add(2).add(3).add(4), next);
+		assertEquals(new ImmutableSet<Integer>().add(1).add(2).add(3).add(5), other);
+		assertEquals(new ImmutableSet<Integer>().add(1).add(2).add(3), last);
+	}
+	
 	
 	/*
 	 * Remove tests 
@@ -148,6 +162,16 @@ public class ImmutableSetTests
 		assertFalse(initial.contains(2));
 	}
 	
+	@Test
+	public void contains_removed_element_different_set_false()
+	{
+		ImmutableSet<Integer> initial = new ImmutableSet<Integer>().add(1);
+		ImmutableSet<Integer> next = initial.remove(1);
+		
+		assertNotEquals(initial, next);
+		assertTrue(initial.contains(1));
+		assertFalse(next.contains(1));
+	}
 	
 	/*
 	 * Union tests
