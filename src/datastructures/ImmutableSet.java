@@ -1,13 +1,11 @@
 package datastructures;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -62,15 +60,25 @@ public class ImmutableSet<T> implements Cloneable
 	/*
 	 * Lazy implementation details:
 	 * 
-	 * The existing set elements are kept in `elements'.
-	 * The changes to be made are kept in a mapping from
-	 * the element to the change to be made (a LazyAction).
-	 * For more information on why this is valid see storeLazyAction().
+	 * All sets have a unique setNum, populated from the static nextSetNum.
+	 * The range of setNum is 1 to MAX_INTEGER. TODO: When nextSetNum reaches
+	 * MAX_INTEGER the sets are consolidated and nextSetNum wraps to 1. 
+	 * 
+	 * The existing set elements are kept in `elements'. elements is unique to this.
+	 * 
+	 * There is ONE list of changes across all sets, segmented by setNum.
+	 * changes is TREATED as static, but is not static because it references T. 
+	 * The list contains a mapping from setNum to the element and change 
+	 * to be made (a LazyAction). For more information on why this is valid
+	 * see storeLazyAction().
 	 * 
 	 * Changes are, in general, not made until they need to be.
 	 * This is not true in a few places where the implementation is vastly simpler
 	 * (see the list in Lazy Implementation).
 	 */
+
+	
+	
 
 	/**
 	 * A lazy action is an action that we store, to possibly be executed later.
@@ -83,69 +91,139 @@ public class ImmutableSet<T> implements Cloneable
 	private enum LazyAction
 	{
 		Add, Remove;
-
-		// It is vitally important that the following case statement is kept in sync with
-		// the values in this enum.
-
-		// Enums are not allowed to use generics, so we cannot add elements.f(T item) to 
-		// the constructor of each enum (which would be the preferred solution). Instead we 
-		// maintain a case statement.
-
-		public static <T> void executeAction(Set<T> elements, T item, LazyAction value)
+	}
+	
+	
+	private class Node<E> implements Iterable<E>
+	{
+		private final Optional<E> element;
+		private final Optional<LazyAction> action;
+		private final Optional<Node<E>> parent;
+		private final Set<ImmutableSet<T>> sets;
+		
+		public Node()
 		{
-			switch (value)
+			this.element = Optional.empty();
+			this.parent = Optional.empty();
+			this.action = Optional.empty();
+			this.sets = new CopyOnWriteArraySet<>();
+		}
+		
+		public Node(E element, LazyAction action, Node<E> parent)
+		{
+			this.element = Optional.of(element);
+			this.parent = Optional.of(parent);
+			this.action = Optional.of(action);
+			this.sets = new CopyOnWriteArraySet<>();
+		}
+		
+		public Node(Node<E> s)
+		{
+			this.element = bind(s.element);
+			this.parent = bind(s.parent);
+			this.action = bind(s.action);
+			this.sets = s.sets;
+		}
+		
+		private <R> Optional<R> bind(Optional<R> m)
+		{
+			if (m.isPresent())
 			{
-				case Add:
-					elements.add(item);
-					break;
-				case Remove:
-					elements.remove(item);
-					break;
+				return Optional.of(m.get());
+			}
+			
+			return Optional.empty();
+		}
+
+		@Override
+		public String toString()
+		{
+			return String.format("%s: %s", action.toString(), element.toString());
+		}
+		
+		public void addSet(ImmutableSet<T> set)
+		{
+			this.sets.add(set);
+		}
+
+		@Override
+		public Iterator<E> iterator()
+		{
+			return new NodeIterator<E>(this);
+		}
+		
+		private final class NodeIterator<R> implements Iterator<R>
+		{
+			private Node<R> current;
+			
+			public NodeIterator(Node<R> node)
+			{
+				this.current = node;
+			}
+			
+			@Override
+			public boolean hasNext()
+			{
+				return current.parent.isPresent();
+			}
+
+			@Override
+			public R next()
+			{
+				if (!hasNext())
+				{
+					throw new NoSuchElementException();
+				}
+				
+				R element = current.element.get();
+				
+				this.current = this.current.parent.get();
+				
+				return element;
 			}
 		}
 	}
-
-	private final Set<T> elements;
-	private final Map<T, LazyAction> changes;
-
+		
+	private final Node<T> empty = new Node<>();
+	private Node<T> startingNode;
+	
 	/**
 	 * Create an empty immutable set
 	 */
 	public ImmutableSet()
 	{
-		this.elements = newSet();
-		this.changes = newActionMap();
+		this.startingNode = setStartingNode(empty);
+	}
+	
+	public ImmutableSet(ImmutableSet<T>.Node<T> startingNode2)
+	{
+		this.startingNode = new Node<T>(startingNode2);
 	}
 
-	/**
-	 * Create an immutable set with the items from
-	 * items.
-	 * @param items The items to add to the new set.
-	 */
 	public ImmutableSet(Collection<T> items)
 	{
-		this.elements = newSet(items);
-		this.changes = newActionMap();
+		ImmutableSet<T> set = new ImmutableSet<>();
+		
+		for (T item : items)
+		{
+			set = newSetWithNode(LazyAction.Add, item);
+		}
+		
+		this.startingNode = set.startingNode;
 	}
 
-	/**
-	 * A new set with the same elements and changes as the old one.
-	 * All items are copied into new containing sets/maps so this is
-	 * not a very cheap operation.
-	 * @param items The existing set elements.
-	 * @param changes The pending set changes.
-	 */
-	private ImmutableSet(Collection<T> items, Map<T, LazyAction> changes)
+	
+	private <E> Node<E> setStartingNode(Node<E> node)
 	{
-		this.elements = newSet(items);
-		this.changes = newActionMap(changes);
+		node.addSet(this);
+		return node;
 	}
+
 
 	@Override
 	public ImmutableSet<T> clone()
 	{
-		// We don't need to apply the changes because the user still hasn't requested anything from us.
-		return new ImmutableSet<T>(elements, changes);
+		return new ImmutableSet<T>(startingNode);
 	}
 
 	/*
@@ -159,21 +237,6 @@ public class ImmutableSet<T> implements Cloneable
 		return new CopyOnWriteArraySet<>();
 	}
 
-	private Set<T> newSet(Collection<T> items)
-	{
-		return new CopyOnWriteArraySet<>(items);
-	}
-
-	private Map<T, LazyAction> newActionMap()
-	{
-		return new HashMap<>();
-	}
-
-	private Map<T, LazyAction> newActionMap(Map<T, LazyAction> items)
-	{
-		return new HashMap<>(items);
-	}
-
 	/*
 	 * Basic set actions
 	 */
@@ -183,7 +246,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public int size()
 	{
-		return applyChangesToElements().size();
+		return toSet().size();
 	}
 
 	/**
@@ -192,7 +255,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public boolean contains(T item)
 	{
-		return applyChangesToElements().contains(item);
+		return toSet().contains(item);
 	}
 
 	/**
@@ -204,9 +267,9 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> add(T item)
 	{
-		return storeLazyAction(item, LazyAction.Add);
+		return newSetWithNode(LazyAction.Add, item);
 	}
-
+	
 	/**
 	 * Create a new set such that item is not present in the set.
 	 * If the item is not present in the current set then the returned
@@ -216,7 +279,18 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> remove(T item)
 	{
-		return storeLazyAction(item, LazyAction.Remove);
+		return newSetWithNode(LazyAction.Remove, item);
+	}
+	
+	private ImmutableSet<T> newSetWithNode(LazyAction action, T item)
+	{
+		ImmutableSet<T> other = this.clone();
+		Node<T> newNode = new Node<>(item, action, other.startingNode);
+		
+		newNode.addSet(other);
+		other.startingNode = newNode;
+		
+		return other;
 	}
 
 	/**
@@ -226,19 +300,9 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> union(ImmutableSet<T> set)
 	{
-		/*
-		 * The current implementation is more efficient if the
-		 * parameter set has a smaller number of changes to make 
-		 * than the callee set.
-		 * 
-		 * A fully lazy approach would combine all of the elements
-		 * and combine the changes favoring add over remove.
-		 */
-		ImmutableSet<T> newSet = this;
+		ImmutableSet<T> newSet = this.clone();
 
-		set.applyChangesToElements();
-
-		for (T item : set.elements)
+		for (T item : set.startingNode)
 		{
 			newSet = newSet.add(item);
 		}
@@ -258,7 +322,7 @@ public class ImmutableSet<T> implements Cloneable
 		if (o instanceof ImmutableSet<?>)
 		{
 			ImmutableSet<?> other = (ImmutableSet<?>) o;
-			isEqual = this.applyChangesToElements().equals(other.applyChangesToElements());
+			isEqual = this.toSet().equals(other.toSet());
 		}
 
 		return isEqual;
@@ -267,13 +331,24 @@ public class ImmutableSet<T> implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		return this.applyChangesToElements().hashCode();
+		return this.toSet().hashCode();
 	}
 
 	@Override
 	public String toString()
 	{
-		return this.applyChangesToElements().toString();
+		StringBuilder s = new StringBuilder("{");
+		
+		for (T item : startingNode)
+		{
+			s.append(item.toString());
+			s.append(", ");
+		}
+		
+		s.delete(s.length() - 2, s.length());
+		s.append("}");
+		
+		return s.toString();
 	}
 
 	/*
@@ -290,7 +365,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public Stream<T> stream()
 	{
-		return this.clone().applyChangesToElements().stream();
+		return this.clone().toSet().stream();
 	}
 
 	/**
@@ -331,99 +406,37 @@ public class ImmutableSet<T> implements Cloneable
 	{
 		return ImmutableSet.fromStream(this.stream().filter(predicate));
 	}
-
-	/**
-	 * A wrapper for Stream.reduce returning an ImmutableSet.
-	 * This function is provided for convenience on the calling end.
-	 * @param mapper
-	 * @return
-	 */
-	public Optional<T> reduce(BinaryOperator<T> accumulator)
-	{
-		return this.stream().reduce(accumulator);
-	}
-
-	/**
-	 * The standard mechanism for storing actions that are to
-	 * be executed lazily.
-	 * 
-	 * T item needs to be provided because the LazyAction will 
-	 * be called with elements and the item. See LazyAction for
-	 * more details.
-	 * 
-	 * The effect of the LazyAction needs to be idempotent
-	 * This means that repeated actions make no change.
-	 * @param item
-	 * @param nextAction
-	 * @return
-	 */
-	private ImmutableSet<T> storeLazyAction(T item, LazyAction nextAction)
-	{
-		/*
-		 * Actions need to be idempotent to enable lazy execution.
-		 * We need to be able to remove some actions from the group of
-		 * actions without affecting the outcome. In this case the natural
-		 * implementation for add and remove is idempotent because we are
-		 * operating on a set (the same is not true, for example, on a list).
-		 * 
-		 * 
-		 * Where a is add, and r is remove.
-		 * a r a, r a r and their subsets are all possible combinations due to
-		 * idempotency.
-		 * 
-		 * The form of the proof is:
-		 * requested action = result -> end result
-		 * a = noop // On add do nothing
-		 * r a = a -> noop // On remove then add, do an add which is do nothing
-		 * 
-		 * Proof:
-		 * Assume there are only 2 cases: an item is either present or not present.
-		 * 
-		 * if item present:
-		 * a = noop
-		 * a r = r -> remove
-		 * a r a = a -> noop
-		 * 
-		 * r = r -> remove
-		 * r a = a -> noop
-		 * r a r = r -> remove
-		 * 
-		 * if item not present:
-		 * a = add
-		 * a r = r -> noop
-		 * a r a = a -> add
-		 * 
-		 * r = noop
-		 * r a = a -> add
-		 * r a r = r -> noop
-		 * 
-		 * From the truth table above:
-		 * The last action taken is the final result of any combination of actions in
-		 * every case.
-		 * Map.put(x,y) where x and y are already present is a noop which is consistent
-		 * with above so may be used in all cases.
-		 */
-
-		ImmutableSet<T> other = this.clone();
-		other.changes.put(item, nextAction);
-		return other;
-	}
-
+	
 	/**
 	 * Applies the necessary actions to the current set
 	 * Both changes and elements are mutated, but this is acceptable
-	 * because it is not visible to the user.
+	 * because the difference is not visible to the user.
 	 * @return
 	 */
-	private Set<T> applyChangesToElements()
+	private Set<T> toSet()
 	{
-		for (Entry<T, LazyAction> entry : this.changes.entrySet())
+		Set<T> set = newSet();
+		Set<T> seenElements = newSet();
+		
+		for (Node<T> node = startingNode; node.parent.isPresent(); node = node.parent.get())
 		{
-			LazyAction.executeAction(elements, entry.getKey(), entry.getValue());
+			T element = node.element.get();
+			
+			if (node.action.get().equals(LazyAction.Remove))
+			{
+				seenElements.add(element);
+			}
+			
+			if (seenElements.contains(element))
+			{
+				
+				continue; // Whether an add or remove, the later decision (which we have already seen) overrides it
+			}
+
+			seenElements.add(element);
+			set.add(node.element.get());
 		}
-
-		this.changes.clear();
-
-		return elements;
+		
+		return set;
 	}
 }
