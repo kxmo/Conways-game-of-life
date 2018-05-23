@@ -170,11 +170,6 @@ public class ImmutableSet<T> implements Cloneable
 		{
 			return String.format("%s: %s", action.toString(), element.toString());
 		}
-		
-		public void addSet(ImmutableSet<T> set)
-		{
-			this.sets.add(set);
-		}
 
 		@Override
 		public Iterator<E> iterator()
@@ -222,12 +217,12 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet()
 	{
-		this.startingNode = setStartingNode(empty);
+		this.startingNode = new Node<>(empty);
 	}
 	
-	public ImmutableSet(ImmutableSet<T>.Node<T> startingNode2)
+	public ImmutableSet(Node<T> startingNode)
 	{
-		this.startingNode = new Node<T>(startingNode2);
+		this.startingNode = new Node<T>(startingNode);
 	}
 
 	public ImmutableSet(Collection<T> items)
@@ -236,19 +231,11 @@ public class ImmutableSet<T> implements Cloneable
 		
 		for (T item : items)
 		{
-			set = newSetWithNode(Action.Add, item);
+			set = newSetWithNode(Action.Add, item, set);
 		}
 		
 		this.startingNode = set.startingNode;
 	}
-
-	
-	private <E> Node<E> setStartingNode(Node<E> node)
-	{
-		node.addSet(this);
-		return node;
-	}
-
 
 	@Override
 	public ImmutableSet<T> clone()
@@ -297,7 +284,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> add(T item)
 	{
-		return newSetWithNode(Action.Add, item);
+		return newSetWithNode(Action.Add, item, this);
 	}
 	
 	/**
@@ -309,15 +296,14 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> remove(T item)
 	{
-		return newSetWithNode(Action.Remove, item);
+		return newSetWithNode(Action.Remove, item, this);
 	}
 	
-	private ImmutableSet<T> newSetWithNode(Action action, T item)
+	private ImmutableSet<T> newSetWithNode(Action action, T item, ImmutableSet<T> set)
 	{
-		ImmutableSet<T> other = this.clone();
+		ImmutableSet<T> other = set.clone();
 		Node<T> newNode = new Node<>(item, action, other.startingNode);
 		
-		newNode.addSet(other);
 		other.startingNode = newNode;
 		
 		return other;
