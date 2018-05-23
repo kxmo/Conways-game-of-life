@@ -27,77 +27,107 @@ import java.util.stream.Stream;
 public class ImmutableSet<T> implements Cloneable
 {
 	/*
-	 * Lazy design:
+	 * Internal structure:
 	 * 
-	 * The implementation of this set is lazy. This design decision
-	 * makes the immutable portion of the set more efficient than it
-	 * otherwise would be. By executing changes to the set lazily we
-	 * can avoid expensive copying of the set for every operation.
+	 * This set uses a trie like structure to maintain immutability of it's elements.
+	 * A trie is a tree that stores each element of it's contained values in separate
+	 * nodes. A trie contiaining 'as' and 'at' and 'app' would look like:
 	 * 
-	 * The semantic usage of the set is identical from the callers
-	 * point of view, however. When the caller requires information
-	 * about the set (toString, equals, contains etc) the correct
-	 * answer must be returned.
+	 *            a
+	 *           /|\
+	 *          s t p
+	 *              |
+	 *              p
+	 * 
+	 * Where the trie is walked downwards.
+	 * 
+	 * Our trie differs in that we walk upwards.
+	 * Each set has a starting node pointing at a particular value and 
+	 * all of a particular set's elements are above it.
+	 * 
+	 * Two sets (s1, s2) containing: 1 and 4, and 1 and 2 may look like (simplified):
+	 * 
+	 *            1
+	 *          /   \
+	 *       s1:4  s2:2
+	 * 
+	 * Creating a new set from s2 by calling: s3 = s2.add(31); makes the trie look like:
+	 *          s0:1
+	 *          /   \
+	 *       s1:4  s2:2
+	 *               |
+	 *             s3:31
+	 * 
+	 * The more recent states of a set are closer to the starting node and thus can be 
+	 * considered the 'current' state despite the set containing all previous actions.
 	 */
-
-	/*
-	 * Lazy implementation:
-	 * 
-	 * Places where a fully lazy implementation is more difficult than it's worth:
-	 * - hashCode
-	 * - toString
-	 * - equals
-	 * - contains
-	 * - union
-	 * - size
-	 * 
-	 * Streams:
-	 * Streams *need* to be synced before the stream call because callers
-	 * can collect the stream into another structure without going through
-	 * us so all of our changes need to be present within the stream.
-	 */
-
-	/*
-	 * Lazy implementation details:
-	 * 
-	 * All sets have a unique setNum, populated from the static nextSetNum.
-	 * The range of setNum is 1 to MAX_INTEGER. TODO: When nextSetNum reaches
-	 * MAX_INTEGER the sets are consolidated and nextSetNum wraps to 1. 
-	 * 
-	 * The existing set elements are kept in `elements'. elements is unique to this.
-	 * 
-	 * There is ONE list of changes across all sets, segmented by setNum.
-	 * changes is TREATED as static, but is not static because it references T. 
-	 * The list contains a mapping from setNum to the element and change 
-	 * to be made (a LazyAction). For more information on why this is valid
-	 * see storeLazyAction().
-	 * 
-	 * Changes are, in general, not made until they need to be.
-	 * This is not true in a few places where the implementation is vastly simpler
-	 * (see the list in Lazy Implementation).
-	 */
-
 	
+	/*
+	 * Details of the backing trie:
+	 * 
+	 * There is always at least 1 empty node (e) and a set associated with it at the root.
+	 * 
+	 * Any node can have multiple branches:
+	 * 
+	 * w = new ImmutableSet<>();
+	 * x = w.add(1);
+	 * y = w.add(2);
+	 * z = x.add(3);
+	 * 
+	 * y and x branch of x and do not contain each other's elements:
+	 *                   w:e
+	 *                   / \
+	 *                 x:1 y:2
+	 *                 /
+	 *               z:3
+	 * 
+	 * The backing trie is not static (because we cannot statically reference T) but
+	 * is passed though as the same reference to all instances. In this way we treat
+	 * the backing trie as static. The only case where we do not have a single instance
+	 * of the trie is where the caller creates a new ImmutableSet<>():
+	 * 
+	 * w = new ImmutableSet<>();
+	 * x = w.add(1);
+	 * y = w.add(2);
+	 * z = x.add(3);
+	 * 
+	 * a = new ImmutableSet<>();
+	 * b = a.add(1);
+	 *                   w:e        a:e
+	 *                   / \        /
+	 *                 x:1 y:2     b:1
+	 *                 /
+	 *               z:3
+	 * 
+	 * Notice that although x and b are .equal they do not share the same nodes, or even
+	 * the same e instance. This is again because e cannot be static because we cannot 
+	 * statically reference T, and it is not possible to pass around an e instance on a 
+	 * new call.
+	 */
 	
 
 	/**
-	 * A lazy action is an action that we store, to possibly be executed later.
-	 * 
-	 * The affecting action must mutate the internal set `elements' idempotently.
-	 * The actions associated with each LazyAction may be called immediately,
-	 * or may never be called. They are guaranteed to be called either 0 or 1 times
-	 * for each time that they are added to the collection of changes to be made.
+	 * A change to an existing set, from which a new set is created.
 	 */
-	private enum LazyAction
+	private enum Action
 	{
 		Add, Remove;
 	}
 	
-	
+	/**
+	 * A node of the trie.
+	 * 
+	 * Elements are either all Optional.empty()
+	 * or all present. Nodes are only Optional.empty()
+	 * at the root of the trie.
+	 * 
+	 * @param <E> T in the outer set, but a different
+	 * generic variable for generality.
+	 */
 	private class Node<E> implements Iterable<E>
 	{
 		private final Optional<E> element;
-		private final Optional<LazyAction> action;
+		private final Optional<Action> action;
 		private final Optional<Node<E>> parent;
 		private final Set<ImmutableSet<T>> sets;
 		
@@ -109,7 +139,7 @@ public class ImmutableSet<T> implements Cloneable
 			this.sets = new CopyOnWriteArraySet<>();
 		}
 		
-		public Node(E element, LazyAction action, Node<E> parent)
+		public Node(E element, Action action, Node<E> parent)
 		{
 			this.element = Optional.of(element);
 			this.parent = Optional.of(parent);
@@ -206,7 +236,7 @@ public class ImmutableSet<T> implements Cloneable
 		
 		for (T item : items)
 		{
-			set = newSetWithNode(LazyAction.Add, item);
+			set = newSetWithNode(Action.Add, item);
 		}
 		
 		this.startingNode = set.startingNode;
@@ -267,7 +297,7 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> add(T item)
 	{
-		return newSetWithNode(LazyAction.Add, item);
+		return newSetWithNode(Action.Add, item);
 	}
 	
 	/**
@@ -279,10 +309,10 @@ public class ImmutableSet<T> implements Cloneable
 	 */
 	public ImmutableSet<T> remove(T item)
 	{
-		return newSetWithNode(LazyAction.Remove, item);
+		return newSetWithNode(Action.Remove, item);
 	}
 	
-	private ImmutableSet<T> newSetWithNode(LazyAction action, T item)
+	private ImmutableSet<T> newSetWithNode(Action action, T item)
 	{
 		ImmutableSet<T> other = this.clone();
 		Node<T> newNode = new Node<>(item, action, other.startingNode);
@@ -422,7 +452,7 @@ public class ImmutableSet<T> implements Cloneable
 		{
 			T element = node.element.get();
 			
-			if (node.action.get().equals(LazyAction.Remove))
+			if (node.action.get().equals(Action.Remove))
 			{
 				seenElements.add(element);
 			}
