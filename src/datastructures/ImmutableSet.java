@@ -257,6 +257,15 @@ public class ImmutableSet<T> implements Cloneable
 	/*
 	 * Basic set actions
 	 */
+	
+	/**
+	 * Determine whether the set is empty.
+	 * @return True iff size is equal to 0, false otherwise.
+	 */
+	public boolean isEmpty()
+	{
+		return size() == 0;
+	}
 
 	/**
 	 * @return The number of elements in the set.
@@ -424,12 +433,11 @@ public class ImmutableSet<T> implements Cloneable
 	}
 	
 	/**
-	 * Applies the necessary actions to the current set
-	 * Both changes and elements are mutated, but this is acceptable
-	 * because the difference is not visible to the user.
+	 * Get the current ImmutableSet as a Set conforming to the set interface.
+	 * All elements are copied so this set may be modified.
 	 * @return
 	 */
-	private Set<T> toSet()
+	public Set<T> toSet()
 	{
 		Set<T> set = newSet();
 		Set<T> seenElements = newSet();
@@ -445,7 +453,6 @@ public class ImmutableSet<T> implements Cloneable
 			
 			if (seenElements.contains(element))
 			{
-				
 				continue; // Whether an add or remove, the later decision (which we have already seen) overrides it
 			}
 
