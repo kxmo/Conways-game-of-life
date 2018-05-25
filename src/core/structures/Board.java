@@ -1,8 +1,15 @@
 package core.structures;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import datastructures.ImmutableSet;
+import datastructures.Pair;
 
 /**
  * The board keeps track of cells in the universe.
@@ -143,5 +150,74 @@ public class Board
 	public String toString()
 	{
 		return this.cells.toString();
+	}
+
+	public List<List<Pair<Cell, Position>>> rows()
+	{
+		List<List<Pair<Cell, Position>>> rows = new ArrayList<>();
+		
+		if (this.cells.isEmpty())
+		{
+			return rows;
+		}
+		
+		SortedSet<Pair<Cell, Position>> allCells = getAllCells();
+		
+		int currentY = allCells.first().right().getY();
+		List<Pair<Cell, Position>> currentRow = new ArrayList<>();
+		
+		for (Pair<Cell, Position> p : allCells)
+		{
+			int positionY = p.right().getY();
+			
+			if (positionY < currentY) // We're working our way top left to bottom right, so lesser Y is later
+			{
+				rows.add(currentRow);
+				currentY = positionY;
+				currentRow = new ArrayList<>();
+			}
+			
+			currentRow.add(p);
+		}
+		
+		rows.add(currentRow);
+		
+		return rows;
+	}
+	
+	private SortedSet<Pair<Cell, Position>> getAllCells()
+	{
+		if (this.cells.isEmpty())
+		{
+			return Collections.emptySortedSet();
+		}
+		
+		// The position comparator when within a Pair
+		Comparator<Pair<?, Position>> positionPairComparator = (a,b) -> a.right().compare(a.right(), b.right());
+		
+		SortedSet<Pair<Cell, Position>> allCells = new TreeSet<>(positionPairComparator);
+		
+		for (Position p : cells.toSet())
+		{
+			allCells.add(new Pair<>(Cell.Alive, p));
+		}
+		
+		int minX = this.cells.stream().mapToInt(Position::getX).min().getAsInt();
+		int minY = this.cells.stream().mapToInt(Position::getY).min().getAsInt();
+		
+		int maxX = this.cells.stream().mapToInt(Position::getX).max().getAsInt();
+		int maxY = this.cells.stream().mapToInt(Position::getY).max().getAsInt();
+		
+		for (int x = minX; x <= maxX; x++)
+		{
+			for (int y = minY; y <= maxY; y++)
+			{
+				// The alive cells are already present, this is a set, and the comparator is based on
+				// Position so we don't need to worry about overwriting the alive cells with dead ones
+				allCells.add(new Pair<Cell, Position>(Cell.Dead, new Position(x, y)));
+			}
+		}
+		
+		return allCells;
 	}
 }
