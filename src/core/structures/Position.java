@@ -1,6 +1,7 @@
 package core.structures;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 import datastructures.ImmutableSet;
 
@@ -8,7 +9,7 @@ import datastructures.ImmutableSet;
  * A valid position in the universe.
  * Values may be negative.
  */
-public class Position
+public class Position implements Comparator<Position>
 {
 	private final int x;
 	private final int y;
@@ -75,5 +76,22 @@ public class Position
 	public String toString()
 	{
 		return String.format("(%d, %d)", x, y);
+	}
+
+	/**
+	 * Returns positions in top left to bottom right order, with Y 
+	 * being considered first.
+	 */
+	@Override
+	public int compare(Position a, Position b)
+	{
+		if (a.getY() == b.getY())
+		{
+			return Integer.compare(a.getX(), b.getX());
+		}
+		else
+		{
+			return b.getY() - a.getY();
+		}
 	}
 }
