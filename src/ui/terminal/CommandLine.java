@@ -6,31 +6,24 @@ import core.structures.Board;
 import core.structures.Cell;
 import core.structures.Position;
 import datastructures.Pair;
+import ui.interfaces.CellDisplayer;
 
-public class CommandLine
+public class CommandLine extends CellDisplayer<String>
 {
-	public static void displayState(Board board)
+	public CommandLine(String alive, String dead)
+	{
+		super(alive, dead);
+	}
+
+	public void display(Board board)
 	{
 		for (List<Pair<Cell, Position>> row : board.rows())
 		{
 			for (Pair<Cell, Position> p : row)
 			{
-				System.out.print(cellToString(p.left()));
+				System.out.print(output(p.left()));
 			}
 			System.out.println();
-		}
-	}
-	
-	private static String cellToString(Cell c)
-	{
-		switch(c)
-		{
-			case Alive:
-				return "*";
-			case Dead:
-				return " ";
-			default:
-				return String.format("Unknown cell: %s", c.toString());
 		}
 	}
 }
