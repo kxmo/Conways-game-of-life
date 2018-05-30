@@ -47,3 +47,7 @@ Every cell transitions between states according to the following mutually exclus
 * Alive and 2 or 3 live neighbours -> Alive
 * Dead and exactly 3 live neighbours -> Alive
 * Otherwise -> Dead
+
+#### Design
+
+The gory design details are available in the [design document](DESIGN.md).
