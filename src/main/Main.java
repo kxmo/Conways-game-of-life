@@ -1,19 +1,19 @@
 package main;
 
-import java.awt.Image;
-import java.io.File;
 import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import java.util.Optional;
 
 import core.structures.Board;
 import core.structures.Cell;
 import core.structures.Position;
-import ui.gui.Graphical;
+import datastructures.Pair;
+import main.interfaces.AssetLoader;
+import ui.gui.GraphicalAssetLoader;
+import ui.interfaces.Displayable;
 
 public class Main
 {
-	public static void main(String[] args) throws IOException
+	public static void main(String[] args)
 	{
 		Board board = new Board();
 		
@@ -27,9 +27,36 @@ public class Main
 		board = board.addCell(Cell.Alive, new Position(1, 4));
 		board = board.addCell(Cell.Alive, new Position(1, 2));
 
-		Image alive = ImageIO.read(new File("src/ui/gui/assets/alive.png"));
-		Image dead = ImageIO.read(new File("src/ui/gui/assets/dead.png"));
-
-		new Graphical(alive, dead).display(board);
+		Pair<Optional<Displayable>, Optional<String>> p = loadDisplayable(new GraphicalAssetLoader());
+		
+		Optional<Displayable> d = p.left();
+		Optional<String> e = p.right();
+		
+		if (d.isPresent())
+		{
+			d.get().display(board);
+		}
+		else if (e.isPresent())
+		{
+			System.err.println(e.get());
+			System.exit(1);
+		}
+		else
+		{
+			System.err.println();
+			System.exit(2);
+		}
+	}
+	
+	private static Pair<Optional<Displayable>, Optional<String>> loadDisplayable(AssetLoader loader)
+	{
+		try
+		{
+			return new Pair<Optional<Displayable>, Optional<String>>(Optional.of(loader.loadDisplayer()), Optional.empty());	
+		}
+		catch (IOException e)
+		{
+			return new Pair<Optional<Displayable>, Optional<String>>(Optional.empty(), Optional.of(e.getMessage()));
+		}
 	}
 }
