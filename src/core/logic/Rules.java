@@ -20,18 +20,16 @@ public class Rules
 
 	public static Cell nextCellStateRule(Cell c, NeighbourCount count)
 	{
-		if (c.equals(Cell.Alive))
-		{
-			if (count == NeighbourCount.N2 || count == NeighbourCount.N3)
-			{
-				return Cell.Alive;
-			}
-		}
-		else if (c.equals(Cell.Dead) && count == NeighbourCount.N3)
+		if (count == NeighbourCount.N3)
 		{
 			return Cell.Alive;
 		}
-
+		
+		if (c.equals(Cell.Alive) && count == NeighbourCount.N2)
+		{
+			return Cell.Alive;
+		}
+		
 		return Cell.Dead;
 	}
 
