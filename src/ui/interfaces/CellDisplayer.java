@@ -24,7 +24,7 @@ public abstract class CellDisplayer<T> implements Displayable
 	 * Convert a Cell c into one of the provided
 	 * values in the constructor.
 	 * This centralises the switch statement on Cell
-	 * where is cannot be implemented into Cell directly.
+	 * because it cannot be implemented into Cell directly.
 	 * @param c The cell to switch on.
 	 * @throws IllegalArgumentException iff the switch statement
 	 * is incomplete. In that case the switch statement is to be updated.
