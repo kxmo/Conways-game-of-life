@@ -15,7 +15,8 @@ public class CommandLine extends CellDisplayer<String>
 		super(alive, dead);
 	}
 
-	public void display(Board board)
+	@Override
+	public void update(Board board)
 	{
 		for (List<Pair<Cell, Position>> row : board.rows())
 		{
@@ -25,5 +26,11 @@ public class CommandLine extends CellDisplayer<String>
 			}
 			System.out.println();
 		}
+	}
+
+	@Override
+	public void run()
+	{
+		// TODO: Implement cmdline parsing in CmdAssetLoader and reference results here - add cmd args to all loaders?
 	}
 }

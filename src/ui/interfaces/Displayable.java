@@ -1,14 +1,15 @@
 package ui.interfaces;
 
 import core.structures.Board;
+import main.interfaces.GenericObserver;
 
 /**
  * Display (graphically or otherwise) an iteration of the board.
  */
-public interface Displayable
+public interface Displayable extends GenericObserver<Board>
 {
 	/**
-	 * @param board The current version of the board to display.
+	 * Start the game of life.
 	 */
-	public void display(Board board);
+	public void run();
 }

@@ -34,7 +34,7 @@ public class Main
 		
 		if (d.isPresent())
 		{
-			d.get().display(board);
+			d.get().run();
 		}
 		else if (e.isPresent())
 		{

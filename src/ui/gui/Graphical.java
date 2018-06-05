@@ -34,7 +34,7 @@ public class Graphical extends CellDisplayer<Image>
 	}
 
 	@Override
-	public void display(Board board)
+	public void update(Board board)
 	{
 		window.setVisible(true);
 		window.setPreferredSize(new Dimension(500, 500));
@@ -95,5 +95,12 @@ public class Graphical extends CellDisplayer<Image>
 				
 			}
 		}
+	}
+
+	@Override
+	public void run()
+	{
+		// This is an interactive interface and will run only when the user selects the appropriate options.
+		// TODO: Implement interactive GUI for users
 	}
 }
