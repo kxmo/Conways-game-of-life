@@ -6,13 +6,18 @@ import core.structures.Board;
 import core.structures.Cell;
 import core.structures.Position;
 import datastructures.Pair;
+import ui.GameManager;
 import ui.interfaces.CellDisplayer;
 
 public class CommandLine extends CellDisplayer<String>
 {
-	public CommandLine(String alive, String dead)
+	private final GameManager game;
+		
+	public CommandLine(String alive, String dead, GameManager game)
 	{
 		super(alive, dead);
+		this.game = game;
+		this.game.addObserver(this);
 	}
 
 	@Override
@@ -31,6 +36,6 @@ public class CommandLine extends CellDisplayer<String>
 	@Override
 	public void run()
 	{
-		// TODO: Implement cmdline parsing in CmdAssetLoader and reference results here - add cmd args to all loaders?
+		game.start();
 	}
 }

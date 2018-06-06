@@ -3,31 +3,16 @@ package main;
 import java.io.IOException;
 import java.util.Optional;
 
-import core.structures.Board;
-import core.structures.Cell;
-import core.structures.Position;
 import datastructures.Pair;
 import main.interfaces.AssetLoader;
-import ui.gui.GraphicalAssetLoader;
 import ui.interfaces.Displayable;
+import ui.terminal.CommandLineAssetLoader;
 
 public class Main
 {
 	public static void main(String[] args)
 	{
-		Board board = new Board();
-		
-
-		board = board.addCell(Cell.Alive, new Position(3, 0));		
-		board = board.addCell(Cell.Alive, new Position(2, 3));
-		board = board.addCell(Cell.Alive, new Position(4, 3));
-		board = board.addCell(Cell.Alive, new Position(0, 1));
-		board = board.addCell(Cell.Alive, new Position(3, 5));
-		board = board.addCell(Cell.Alive, new Position(2, 1));
-		board = board.addCell(Cell.Alive, new Position(1, 4));
-		board = board.addCell(Cell.Alive, new Position(1, 2));
-
-		Pair<Optional<Displayable>, Optional<String>> p = loadDisplayable(new GraphicalAssetLoader(), args);
+		Pair<Optional<Displayable>, Optional<String>> p = loadDisplayable(new CommandLineAssetLoader(), args);
 		
 		Optional<Displayable> d = p.left();
 		Optional<String> e = p.right();

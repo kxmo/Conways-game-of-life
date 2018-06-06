@@ -6,31 +6,66 @@ import java.util.TimerTask;
 
 import core.logic.Generation;
 import core.structures.Board;
+import datastructures.Pair;
 import main.interfaces.GenericObservable;
 
 public class GameManager extends GenericObservable<Board>
 {
 	private Board board;
 	private Optional<Timer> timer;
+	private final Pair<Boolean, Integer> fixedGen;
+	private int currentGen;
 	
 	private final TimerTask notify = new TimerTask()
 	{
 		@Override
 		public void run()
 		{
-			GameManager.this.board = Generation.runGeneration(GameManager.this.board);
+			if (!fixedGen.left() || currentGen < fixedGen.right())
+			{
+				GameManager.this.board = Generation.runGeneration(GameManager.this.board);
+				currentGen++;
+			}
+			
 			GameManager.this.notifyObservers(GameManager.this.board);
+			
+			if (currentGen == fixedGen.right())
+			{
+				this.cancel();
+			}
 		}
 	};
 	
 	/**
 	 * Create a new game manager with the game stopped.
+	 * The game will not stop after a fixed number of generations.
 	 * @param board The starting state of the board.
 	 */
 	public GameManager(Board board)
 	{
+		this(board, -1);
+	}
+
+	/**
+	 * Create a new game manager with the game stopped,
+	 * to run generations number of generations.
+	 * @param board
+	 * @param generations >= 0 
+	 */
+	public GameManager(Board board, int generations)
+	{
 		this.board = board;
 		this.timer = Optional.empty();
+		this.currentGen = 0;
+		
+		if (generations < 0)
+		{
+			this.fixedGen = new Pair<Boolean, Integer>(false, 0);
+		}
+		else
+		{
+			this.fixedGen = new Pair<Boolean, Integer>(true, generations);
+		}
 	}
 
 	/**
