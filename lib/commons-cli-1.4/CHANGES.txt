@@ -1,0 +1,3 @@
+No changes have been made to the distributed binary.
+The binary (as is) is available at http://www-us.apache.org/dist//commons/cli/binaries/commons-cli-1.4-bin.zip
+MD5 sum e3bdc6213c720f8ae5b606b08b036628
