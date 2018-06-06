@@ -12,7 +12,7 @@ import ui.interfaces.Displayable;
 public class GraphicalAssetLoader implements AssetLoader
 {
 	@Override
-	public Displayable loadDisplayer() throws IOException
+	public Displayable loadDisplayer(String[] cmdLineArgs) throws IOException
 	{
 		Image alive = ImageIO.read(new File("src/ui/gui/assets/alive.png"));
 		Image dead = ImageIO.read(new File("src/ui/gui/assets/dead.png"));

@@ -23,7 +23,7 @@ public class EmptyLoader implements AssetLoader
 	}
 	
 	@Override
-	public Displayable loadDisplayer() throws IOException
+	public Displayable loadDisplayer(String[] cmdLineArgs) throws IOException
 	{
 		return d;
 	}

@@ -27,7 +27,7 @@ public class Main
 		board = board.addCell(Cell.Alive, new Position(1, 4));
 		board = board.addCell(Cell.Alive, new Position(1, 2));
 
-		Pair<Optional<Displayable>, Optional<String>> p = loadDisplayable(new GraphicalAssetLoader());
+		Pair<Optional<Displayable>, Optional<String>> p = loadDisplayable(new GraphicalAssetLoader(), args);
 		
 		Optional<Displayable> d = p.left();
 		Optional<String> e = p.right();
@@ -48,11 +48,11 @@ public class Main
 		}
 	}
 	
-	private static Pair<Optional<Displayable>, Optional<String>> loadDisplayable(AssetLoader loader)
+	private static Pair<Optional<Displayable>, Optional<String>> loadDisplayable(AssetLoader loader, String[] args)
 	{
 		try
 		{
-			return new Pair<Optional<Displayable>, Optional<String>>(Optional.of(loader.loadDisplayer()), Optional.empty());	
+			return new Pair<Optional<Displayable>, Optional<String>>(Optional.of(loader.loadDisplayer(args)), Optional.empty());	
 		}
 		catch (IOException e)
 		{
