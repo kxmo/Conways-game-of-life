@@ -13,33 +13,41 @@ import core.structures.Board;
 import core.structures.Cell;
 import core.structures.Position;
 import datastructures.Pair;
+import ui.GameManager;
 import ui.interfaces.CellDisplayer;
 
 public class Graphical extends CellDisplayer<Image>
 {
+	private final GameManager game;
 	private final JFrame window;
 	private static final String windowTitle = "Conway's game of life";
 
 	private Board board;
 
-	public Graphical(Image alive, Image dead)
+	public Graphical(Image alive, Image dead, GameManager game)
 	{
 		super(alive, dead);
 
+		this.game = game;
+		this.game.addObserver(this);
+		
 		window = new JFrame(windowTitle);
 		window.setVisible(false);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		window.setSize(500, 500);
+		window.setPreferredSize(new Dimension(500, 500));
 
 		window.add(new PaintCell());
+		
+		window.setVisible(true);
 	}
 
 	@Override
 	public void update(Board board)
 	{
-		window.setVisible(true);
-		window.setPreferredSize(new Dimension(500, 500));
-		window.setSize(500, 500);
 		this.board = board;
+		window.repaint();
 	}
 
 	private class PaintCell extends JPanel
@@ -100,6 +108,7 @@ public class Graphical extends CellDisplayer<Image>
 	@Override
 	public void run()
 	{
+		game.start(500);
 		// This is an interactive interface and will run only when the user selects the appropriate options.
 		// TODO: Implement interactive GUI for users
 	}
