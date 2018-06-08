@@ -8,6 +8,15 @@ The program is divided into five broad parts, each of which will be discussed in
 
 The tests for each part, if they exist, are contained within part.sub.tests. For example the core logic tests are in core.logic.tests.
 
+The call order will usually look like:
+
+* main.main()
+  * ui.X.AssetLoader - where X is the type of interface, and AssetLoader is an implementer of main.interfaces.AssetLoader
+    * ui.X.userInterface.run() - called by main, because userInterface is an implementer of ui.interfaces.Displayable
+      * ui.GameManager - used by the user interface to run the game, will call update(Board) on the user interface
+        * core.logic.Generation
+        * core.structures.Board
+
 ## Core
 The core contains the rules and structures necessary for the execution of the Game of life. As such core is divided into two parts:
 1. Core logic
