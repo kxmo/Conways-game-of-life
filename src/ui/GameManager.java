@@ -29,9 +29,9 @@ public class GameManager extends GenericObservable<Board>
 			
 			GameManager.this.notifyObservers(GameManager.this.board);
 			
-			if (currentGen == fixedGen.right())
+			if (currentGen >= fixedGen.right())
 			{
-				this.cancel();
+				GameManager.this.stop();
 			}
 		}
 	};
@@ -114,6 +114,7 @@ public class GameManager extends GenericObservable<Board>
 	{
 		if (timer.isPresent())
 		{
+			notify.cancel();
 			timer.get().cancel();
 			timer = Optional.empty();
 		}
