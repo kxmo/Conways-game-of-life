@@ -2,6 +2,7 @@ package parsing.terminal;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +14,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import datastructures.Pair;
 
 public class Parser
 {
@@ -52,24 +55,53 @@ public class Parser
 	 */
 	public Optional<Map<String, String>> parse(String[] args)
 	{
+		Pair<Map<String, String>, String[]> map = parse(args, false);
+		
+		if (!map.left().isEmpty())
+		{
+			return Optional.of(map.left());
+		}
+		else
+		{
+			return Optional.empty();
+		}
+	}
+	
+	public Pair<Map<String, String>, String[]> parseReturnUnused(String[] args)
+	{
+		return parse(args, true);
+	}
+	
+	/**
+	 * Parse arguments according to the options, returning the results and any unused
+	 * arguments.
+	 * If args could not be parsed the help message is set and an empty map and list is returned. 
+	 * @param args
+	 * @return
+	 */
+	private Pair<Map<String, String>, String[]> parse(String[] args, boolean returnUnused)
+	{
 		CommandLineParser parser = new DefaultParser();
 		Map<String, String> argToResult = new HashMap<>();
 
 		try
 		{
-			CommandLine result = parser.parse(options,  args);
+			CommandLine result = parser.parse(options, args, returnUnused);
 
 			for (Option option : result.getOptions())
 			{
 				argToResult.put(option.getLongOpt(), option.getValue());
 			}
 
-			return Optional.of(argToResult);
+			return new Pair<Map<String,String>, String[]>(argToResult, result.getArgs());
 		}
 		catch (ParseException e)
 		{
 			helpMessage = Optional.of(e.getMessage());
-			return Optional.empty();
+			
+			String[] empty = {}; // Don't appear to be able to do this inline
+			// If a parse exception happened then we don't have meaningful remaining args
+			return new Pair<Map<String,String>, String[]>(Collections.emptyMap(), empty);
 		}
 	}
 
