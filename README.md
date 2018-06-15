@@ -51,3 +51,37 @@ Every cell transitions between states according to the following mutually exclus
 #### Design
 
 The gory design details are available in the [design document](DESIGN.md).
+
+### Why, where, and when
+The same as their respective sections in the short version
+
+### How
+
+#### Install a Java 8 runtime
+We are going to be compiling the program, so will be needing the Java Development Kit (JDK).
+For example, the official builds from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html). 
+Follow the installation instructions and optionally try run or compile the demos or samples available on the same page to test your installation worked.
+
+#### Download the source code
+Select the green `Clone or download` button on the top right of the repository
+A small window titled `Clone with HTTPS` will appear, this is the window we use for both of the following instructions. You only need to follow one.
+
+##### Github UI
+1. Select `Download ZIP`
+2. Save the file
+3. Move it somewhere appropriate
+4. Extract the files from the zip
+
+##### Git
+1. Copy the URL (keeping the .git at the end)
+2. Move to an appropriate directory
+3. Run `git clone [the url]` where [the url] is the text you copied
+
+#### Compile the program
+Coming soon
+
+#### Execute the program
+Coming soon
+
+#### Set up a game of life
+Coming soon
