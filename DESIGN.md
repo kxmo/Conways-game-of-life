@@ -89,3 +89,36 @@ The specific interfaces used to implement the Observer pattern are main.interfac
 The GameManager is not a necessary part of the UI but provides either continuous or timed execution of generations. This allows for UIs to be updated every X milliseconds and not need to manage the timing themselves.
 
 The GameManager also allows the game to be run for a fixed number of generations before stopping so is recommended as the mechanism to update the UI and manage the game state.
+
+# Tradeoffs
+
+## Third party libraries
+This application, like many, references external libraries. The parsing, for example, is provided by `lib/commons-cli-1.4/commons-cli-1.4.jar`.
+
+There are some known best practices when dealing with external libraries. For example it is well known that one should wrap any library functionality in another class or to expose the functionality in the library through an interface. This is done to prevent changes in the way the library is called from requiring changes everywhere the library functionality is used. The tradeoff is that it takes time and mental capacity to maintain the layer between the caller and the library functionality.
+
+The best practice for the integration of the library into the codebase is less clear. It is a divisive topic that has two main solutions:
+1. Reference specific library versions and download when needed
+2. Put third party binaries into version control
+
+### Referencing libraries pros:
+* Libraries do not take up space in VC
+* The line is not clear - are IDEs and language runtimes "third party libraries"?
+* It is very common in the web space (less common elsewhere?)
+
+### Referencing libraries cons:
+* Zero automatic guarantee that the third party library you have downloaded is the same as any other - the vender could update without changing the version number
+* Rely on a central repository (and all of the problems that come with it)
+
+
+### Storing libraries pros:
+* Everything required to build and run this software (except the environment) is provided
+* It is not possible to have out of sync versions[1]
+* No additional software required (build tools/scripts)
+
+### Storing libraries cons:
+* The library license may not allow redistribution
+* The repository is larger
+
+
+[1] If someone downloads the code and then replaces the library on their machine without pushing they are out of sync but this would only reasonably happen if the user was malicious; this is also easily fixed by downloading the original source again which, by definition, contains the correct library
