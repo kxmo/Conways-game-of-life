@@ -15,9 +15,9 @@ public class GameManager extends GenericObservable<Board>
 	private Optional<Timer> timer;
 	private final Pair<Boolean, Integer> fixedGen;
 	private int currentGen;
-	
+
 	private TimerTask notify;
-	
+
 	/**
 	 * Create a new game manager with the game stopped.
 	 * The game will not stop after a fixed number of generations.
@@ -39,7 +39,7 @@ public class GameManager extends GenericObservable<Board>
 		this.board = board;
 		this.timer = Optional.empty();
 		this.currentGen = 0;
-		
+
 		if (generations < 0)
 		{
 			this.fixedGen = new Pair<Boolean, Integer>(false, 0);
@@ -63,7 +63,7 @@ public class GameManager extends GenericObservable<Board>
 	{
 		start(1);
 	}
-	
+
 	/**
 	 * Start or resume the current game of life.
 	 * This function will result in an Observer update
@@ -84,7 +84,7 @@ public class GameManager extends GenericObservable<Board>
 		timer = Optional.of(new Timer());
 		timer.get().schedule(notify, period, period);
 	}
-	
+
 	private TimerTask runGame()
 	{
 		return new TimerTask()
@@ -97,9 +97,9 @@ public class GameManager extends GenericObservable<Board>
 					GameManager.this.board = Generation.runGeneration(GameManager.this.board);
 					currentGen++;
 				}
-				
+
 				GameManager.this.notifyObservers(GameManager.this.board);
-				
+
 				if (fixedGen.left() && currentGen >= fixedGen.right())
 				{
 					GameManager.this.stop();
