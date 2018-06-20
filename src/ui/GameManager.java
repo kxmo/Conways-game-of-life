@@ -16,25 +16,7 @@ public class GameManager extends GenericObservable<Board>
 	private final Pair<Boolean, Integer> fixedGen;
 	private int currentGen;
 	
-	private final TimerTask notify = new TimerTask()
-	{
-		@Override
-		public void run()
-		{
-			if (!fixedGen.left() || currentGen < fixedGen.right())
-			{
-				GameManager.this.board = Generation.runGeneration(GameManager.this.board);
-				currentGen++;
-			}
-			
-			GameManager.this.notifyObservers(GameManager.this.board);
-			
-			if (currentGen >= fixedGen.right())
-			{
-				GameManager.this.stop();
-			}
-		}
-	};
+	private TimerTask notify;
 	
 	/**
 	 * Create a new game manager with the game stopped.
@@ -87,13 +69,37 @@ public class GameManager extends GenericObservable<Board>
 	 */
 	public void start(long period)
 	{
-		if (!timer.isPresent())
+		if (!running())
 		{
+			notify = runGame();
 			timer = Optional.of(new Timer());
 			timer.get().schedule(notify, 0, period);
 		}
 	}
 	
+	private TimerTask runGame()
+	{
+		return new TimerTask()
+		{
+			@Override
+			public void run()
+			{
+				if (!fixedGen.left() || currentGen < fixedGen.right())
+				{
+					GameManager.this.board = Generation.runGeneration(GameManager.this.board);
+					currentGen++;
+				}
+				
+				GameManager.this.notifyObservers(GameManager.this.board);
+				
+				if (fixedGen.left() && currentGen >= fixedGen.right())
+				{
+					GameManager.this.stop();
+				}
+			}
+		};
+	}
+
 	/**
 	 * Test whether the game is currently running.
 	 * @return True if the game has start()ed, false
@@ -112,7 +118,7 @@ public class GameManager extends GenericObservable<Board>
 	 */
 	public void stop()
 	{
-		if (timer.isPresent())
+		if (running())
 		{
 			notify.cancel();
 			timer.get().cancel();
