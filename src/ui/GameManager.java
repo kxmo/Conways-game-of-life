@@ -66,20 +66,23 @@ public class GameManager extends GenericObservable<Board>
 	
 	/**
 	 * Start or resume the current game of life.
-	 * This function will result in an Observer update.
-	 * This function does nothing if the game is
-	 * not stopped.
+	 * This function will result in an Observer update
+	 * after the period has expired.
+	 * This function will stop and then continue the game
+	 * after the period.
 	 * @param period Milliseconds between executions.
 	 * Must be >= 1.
 	 */
 	public void start(long period)
 	{
-		if (!running())
+		if (running())
 		{
-			notify = runGame();
-			timer = Optional.of(new Timer());
-			timer.get().schedule(notify, 0, period);
+			stop();
 		}
+
+		notify = runGame();
+		timer = Optional.of(new Timer());
+		timer.get().schedule(notify, period, period);
 	}
 	
 	private TimerTask runGame()
