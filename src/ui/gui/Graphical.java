@@ -1,9 +1,11 @@
 package ui.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import core.structures.Board;
 import ui.GameManager;
@@ -28,19 +30,26 @@ public class Graphical extends CellDisplayer<Image>
 		
 		window = new JFrame(windowTitle);
 		setupFrame();
+		update(game.getCurrentData()); // Display the board before starting the game
 	}
 	
 	private void setupFrame()
 	{
-		window.setVisible(false);
+		window.setPreferredSize(new Dimension(500, 500));
+		window.setResizable(true);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		window.setSize(500, 500);
-		window.setPreferredSize(new Dimension(500, 500));
+		JPanel options = new OptionsPanel(game);
+		cells.setPreferredSize(new Dimension(
+				(int) window.getContentPane().getPreferredSize().getWidth(),
+				(int) (window.getContentPane().getPreferredSize().getHeight() - options.getPreferredSize().getHeight())));
 
-		window.add(cells);
+		window.setLayout(new BorderLayout());
+		window.add(cells, BorderLayout.CENTER);
+		window.add(options, BorderLayout.SOUTH);
 		
-		window.setVisible(true);
+        window.pack();
+        window.setVisible(true);
 	}
 
 	@Override
@@ -53,8 +62,6 @@ public class Graphical extends CellDisplayer<Image>
 	@Override
 	public void run()
 	{
-		game.start();
 		// This is an interactive interface and will run only when the user selects the appropriate options.
-		// TODO: Implement interactive GUI for users
 	}
 }
