@@ -28,4 +28,12 @@ public abstract class GenericObservable<T>
 			o.update(arg);
 		}
 	}
+	
+	/**
+	 * Observables must override this JavaDoc
+	 * or otherwise suitably note that T may not
+	 * be present if applicable.
+	 * @return The most recent version of the data.
+	 */
+	abstract public T getCurrentData();
 }

@@ -49,6 +49,11 @@ public class GameManager extends GenericObservable<Board>
 			this.fixedGen = new Pair<Boolean, Integer>(true, generations);
 		}
 	}
+	
+	public Board getCurrentData()
+	{
+		return board;
+	}
 
 	/**
 	 * Run or resume the game, running as fast as possible.
